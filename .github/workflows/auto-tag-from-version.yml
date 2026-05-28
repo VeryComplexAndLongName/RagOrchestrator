@@ -1,0 +1,49 @@
+name: Auto Tag From pyproject Version
+
+on:
+  push:
+    paths:
+      - pyproject.toml
+
+permissions:
+  contents: write
+
+jobs:
+  tag-version:
+    if: github.ref_name == github.event.repository.default_branch
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout full history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Create tag from pyproject version
+        run: |
+          python - <<'PY'
+          import subprocess
+          import tomllib
+          from pathlib import Path
+
+          pyproject = Path("pyproject.toml")
+          data = tomllib.loads(pyproject.read_text(encoding="utf-8"))
+          version = data["project"]["version"].strip()
+          tag = version
+
+          tags = subprocess.check_output(["git", "tag", "-l", tag], text=True).strip()
+          if tags:
+              print(f"Tag already exists: {tag}")
+              raise SystemExit(0)
+
+          subprocess.check_call(["git", "config", "user.name", "github-actions[bot]"])
+          subprocess.check_call(["git", "config", "user.email", "41898282+github-actions[bot]@users.noreply.github.com"])
+          subprocess.check_call(["git", "tag", "-a", tag, "-m", f"Release {version}"])
+          subprocess.check_call(["git", "push", "origin", tag])
+          print(f"Created and pushed tag: {tag}")
+          PY

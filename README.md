@@ -247,19 +247,30 @@ python -m twine check dist/*
     - Repository: this repository.
     - Workflow: `publish.yml`.
     - Environment: `pypi`.
-4. Push a version tag:
+4. Ensure auto-tag workflow is enabled:
 
-```bash
-git tag v0.1.2
-git push origin v0.1.2
-```
+- [.github/workflows/auto-tag-from-version.yml](.github/workflows/auto-tag-from-version.yml)
+- it watches `pyproject.toml`, reads `[project].version`, and creates `<version>` tag automatically.
+
+5. Bump version in `pyproject.toml` and push to default branch.
+
+6. Publish only selected version manually (recommended way with tag chooser):
+
+- open GitHub `Releases` -> `Draft a new release`
+- in `Choose a tag`, select existing tag (for example `0.1.3`)
+- click `Publish release`
+- workflow [.github/workflows/publish.yml](.github/workflows/publish.yml) starts automatically on `release.published`
+
+The workflow validates that selected tag matches `[project].version` in `pyproject.toml` for that tag and only then publishes to PyPI.
+
+Manual fallback is still available via `workflow_dispatch` input `release_tag`.
 
 The workflow [.github/workflows/publish.yml](.github/workflows/publish.yml) will:
 
 - build sdist and wheel
 - verify metadata with Twine
 - publish to PyPI using OIDC Trusted Publishing
-- create a GitHub Release and attach built artifacts
+- run for selected tag from release event (or manual fallback via `workflow_dispatch`)
 
 ## PromptOrchestrator Interoperability
 
