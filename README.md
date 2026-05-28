@@ -16,6 +16,7 @@ Universal and extensible RAG module with standardized interfaces and storage ada
 - Pluggable providers for Qdrant, PGVector, and SQLite+vec style workflows.
 - Standardized ingestion pipeline: cleaning -> chunking -> embedding -> upsert.
 - Standardized retrieval APIs with semantic/hybrid strategies.
+- First-class interoperability with PromptOrchestrator pipelines.
 - Extensible migration framework (Alembic-like, provider-agnostic state tracking).
 - Quantitative quality checks for chunks and retrieval performance.
 
@@ -72,6 +73,7 @@ from rag_orchestrator import (
     EmbeddingConfig,
     ModuleConfig,
     PipelineConfig,
+    PromptStyleRAGProviderAdapter,
     ProviderConfig,
     RAGOrchestratorFactory,
 )
@@ -259,9 +261,19 @@ The workflow [.github/workflows/publish.yml](.github/workflows/publish.yml) will
 - publish to PyPI using OIDC Trusted Publishing
 - create a GitHub Release and attach built artifacts
 
-## prompt_orchestrator Naming Compatibility
+## PromptOrchestrator Interoperability
 
-To align with prompt_orchestrator conventions:
+RagOrchestrator can be used as a retrieval backend for PromptOrchestrator flows.
+
+PromptOrchestrator: [https://github.com/VeryComplexAndLongName/PromptOrchestrator](https://github.com/VeryComplexAndLongName/PromptOrchestrator)
+
+How integration works:
+
+- RagOrchestrator keeps ingestion/storage concerns (`clean -> chunk -> embed -> upsert`).
+- PromptOrchestrator consumes ready context via `retrieve(query, limit)`.
+- `PromptStyleRAGProviderAdapter` bridges native retrieval output to `DocChunk` contract.
+
+Compatibility building blocks:
 
 - `DocChunk` model in [src/rag_orchestrator/context.py](src/rag_orchestrator/context.py)
 - abstract `RAGProvider` in [src/rag_orchestrator/rag/base.py](src/rag_orchestrator/rag/base.py)
@@ -269,7 +281,7 @@ To align with prompt_orchestrator conventions:
 
 This keeps rag_orchestrator internals storage-oriented while exposing prompt_orchestrator-style `retrieve(query, limit)` contract where needed.
 
-Factory-style bootstrap (aligned with prompt_orchestrator):
+Example 1: factory bootstrap (aligned with PromptOrchestrator style):
 
 ```python
 from rag_orchestrator import (
@@ -277,6 +289,7 @@ from rag_orchestrator import (
     EmbeddingConfig,
     ModuleConfig,
     PipelineConfig,
+    PromptStyleRAGProviderAdapter,
     ProviderConfig,
     RAGOrchestratorFactory,
 )
@@ -290,7 +303,31 @@ config_store = ConfigStore(
 )
 
 orchestrator = RAGOrchestratorFactory.from_config_store(config_store)
+
+adapter = PromptStyleRAGProviderAdapter(
+    provider=orchestrator.provider,
+    embedder=orchestrator.embedder,
+)
+docs = adapter.retrieve("How does incremental sync work?", limit=3)
+for doc in docs:
+    print(doc.id, doc.score, doc.content[:80])
 ```
+
+Example 2: explicit adapter for an existing provider/embedder pair:
+
+```python
+from rag_orchestrator.embedding import HashEmbedder
+from rag_orchestrator.factory import create_provider
+from rag_orchestrator.rag.compat import PromptStyleRAGProviderAdapter
+
+provider = create_provider("sqlite+vec", db_path="rag.db")
+embedder = HashEmbedder(dimensions=256)
+
+prompt_provider = PromptStyleRAGProviderAdapter(provider=provider, embedder=embedder)
+docs = prompt_provider.retrieve("What are the default integration env vars?", limit=5)
+```
+
+In PromptOrchestrator, use `docs` as context blocks for prompt assembly and answer generation.
 
 ## Integration Tests
 
