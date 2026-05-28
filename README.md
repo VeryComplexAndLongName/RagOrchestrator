@@ -242,11 +242,12 @@ python -m twine check dist/*
     - Owner: your GitHub org/user.
     - Repository: this repository.
     - Workflow: `publish.yml`.
+    - Environment: `pypi`.
 4. Push a version tag:
 
 ```bash
-git tag v0.1.0
-git push origin v0.1.0
+git tag v0.1.2
+git push origin v0.1.2
 ```
 
 The workflow [.github/workflows/publish.yml](.github/workflows/publish.yml) will:

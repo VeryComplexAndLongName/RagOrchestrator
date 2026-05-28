@@ -38,6 +38,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       id-token: write
+    environment: pypi
 
     steps:
       - name: Download dist artifacts
