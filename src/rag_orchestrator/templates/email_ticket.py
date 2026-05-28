@@ -101,9 +101,11 @@ class EmailTicketTemplate(BaseIngestionTemplate):
             with path.open("rb") as handle:
                 msg = BytesParser(policy=policy.default).parse(handle)
             body = msg.get_body(preferencelist=("plain",))
-            text = body.get_content() if body else msg.get_payload(decode=True)
-            if isinstance(text, bytes):
-                text = text.decode("utf-8", errors="replace")
+            payload = body.get_content() if body else msg.get_payload(decode=True)
+            if isinstance(payload, bytes):
+                text = payload.decode("utf-8", errors="replace")
+            else:
+                text = str(payload or "")
             return [
                 {
                     "ticket_id": path.stem,
