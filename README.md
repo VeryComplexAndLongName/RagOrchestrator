@@ -2,6 +2,8 @@
 
 Universal and extensible RAG module with standardized interfaces and storage adapters.
 
+![Rag Orchestrator](RagOrchestrator.png)
+
 ## Authors
 
 - Alexander Ivanov
