@@ -1,0 +1,88 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rag_orchestrstor"
+version = "0.1.0"
+description = "Universal RAG orchestration layer with pluggable vector DB adapters"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+authors = [
+  {name = "Alexander Ivanov", email = "VeryComplexAndLongName@gamil.com"},
+]
+keywords = ["rag", "retrieval", "orchestration", "vector-database", "llm"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = [
+  "pydantic>=2.8,<3",
+  "typing-extensions>=4.10",
+]
+
+[project.optional-dependencies]
+qdrant = ["qdrant-client>=1.9"]
+pgvector = ["sqlalchemy>=2.0", "psycopg[binary]>=3.1", "pgvector>=0.3"]
+hf = ["sentence-transformers>=3.0"]
+dev = [
+  "pytest>=8.2",
+  "ruff>=0.5.0",
+  "mypy>=1.10",
+  "uv>=0.4.0",
+]
+all = [
+  "qdrant-client>=1.9",
+  "sqlalchemy>=2.0",
+  "psycopg[binary]>=3.1",
+  "pgvector>=0.3",
+  "sentence-transformers>=3.0",
+  "pytest>=8.2",
+  "ruff>=0.5.0",
+  "mypy>=1.10",
+  "uv>=0.4.0",
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+  "integration: integration tests",
+  "qdrant: tests that require Qdrant",
+  "pgvector: tests that require PostgreSQL with pgvector",
+]
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+exclude = [
+  ".venv",
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.11"
+files = ["src", "tests", "scripts"]
+warn_unused_configs = true
+ignore_missing_imports = true
+follow_imports = "skip"
+show_error_codes = true
+pretty = true
+namespace_packages = true
+explicit_package_bases = true
+disable_error_code = ["attr-defined", "import-untyped", "arg-type", "index"]

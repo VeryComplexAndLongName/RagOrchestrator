@@ -1,0 +1,75 @@
+{
+  "timestamp_utc": "2026-05-27T13:02:11.024306+00:00",
+  "config": {
+    "providers": [
+      "sqlite+vec",
+      "pgvector",
+      "qdrant"
+    ],
+    "documents": 150,
+    "words_per_doc": 120,
+    "queries": 240,
+    "concurrency": 6,
+    "top_k": 5,
+    "dimensions": 128,
+    "seed": 42,
+    "qdrant_url": "http://localhost:6333",
+    "pg_dsn_present": true
+  },
+  "results": [
+    {
+      "backend": "sqlite+vec",
+      "status": "ok",
+      "reason": "",
+      "docs": 150,
+      "queries": 240,
+      "dimensions": 128,
+      "ingest_total_s": 3.021976400006679,
+      "ingest_docs_per_s": 49.63639027745832,
+      "ingest_avg_ms": 20.14367733305941,
+      "ingest_p95_ms": 24.072974997397978,
+      "search_total_s": 4.401297700009309,
+      "search_qps": 54.529372098481865,
+      "search_avg_ms": 109.05883166590986,
+      "search_p50_ms": 106.10199999791803,
+      "search_p95_ms": 132.66919999878155,
+      "search_p99_ms": 146.1397610069252
+    },
+    {
+      "backend": "pgvector",
+      "status": "ok",
+      "reason": "",
+      "docs": 150,
+      "queries": 240,
+      "dimensions": 128,
+      "ingest_total_s": 0.0807968000008259,
+      "ingest_docs_per_s": 1856.5091686609708,
+      "ingest_avg_ms": 0.5379713323782198,
+      "ingest_p95_ms": 0.7250600043334998,
+      "search_total_s": 0.14062759999069385,
+      "search_qps": 1706.6351129926288,
+      "search_avg_ms": 3.4010104168070634,
+      "search_p50_ms": 3.0247499962570146,
+      "search_p95_ms": 4.160944991599536,
+      "search_p99_ms": 18.62177699906169
+    },
+    {
+      "backend": "qdrant",
+      "status": "ok",
+      "reason": "",
+      "docs": 150,
+      "queries": 240,
+      "dimensions": 128,
+      "ingest_total_s": 0.08297899999888614,
+      "ingest_docs_per_s": 1807.6862820956328,
+      "ingest_avg_ms": 0.5525006672057012,
+      "ingest_p95_ms": 0.7499299979826894,
+      "search_total_s": 0.4037320999923395,
+      "search_qps": 594.453599316363,
+      "search_avg_ms": 9.945779999967877,
+      "search_p50_ms": 9.216950005793478,
+      "search_p95_ms": 17.310240000369955,
+      "search_p99_ms": 21.300379002350375
+    }
+  ]
+}

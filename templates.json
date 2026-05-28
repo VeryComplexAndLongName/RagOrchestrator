@@ -1,0 +1,157 @@
+{
+  "orchestrator": {
+    "provider": {
+      "kind": "sqlite+vec",
+      "params": {
+        "db_path": "rag_templates.db",
+        "table_name": "rag_chunks"
+      }
+    },
+    "embedding": {
+      "provider": "hash",
+      "model": null,
+      "options": {
+        "dimensions": 256
+      }
+    },
+    "pipeline": {
+      "preset": "document"
+    }
+  },
+  "graph_store": {
+    "db_path": "rag_graph.sqlite"
+  },
+  "evaluation": {
+    "enabled": false,
+    "dataset_path": "datasets/retrieval_eval.jsonl",
+    "top_k": 3
+  },
+  "experiment_log": {
+    "enabled": true,
+    "db_path": "loadtest/experiments.sqlite"
+  },
+  "active_scenario": "repo_code",
+  "scenarios": {
+    "web_crawl": {
+      "urls": [
+        "https://example.com"
+      ],
+      "max_depth": 1,
+      "same_domain_only": true,
+      "max_pages": 50,
+      "language_mode": "auto"
+    },
+    "document_folder": {
+      "folders": [
+        "docs"
+      ],
+      "recursive": true,
+      "extensions": [
+        ".docx",
+        ".pdf",
+        ".xlsx",
+        ".txt",
+        ".md",
+        ".html"
+      ],
+      "language_mode": "auto"
+    },
+    "confluence_wiki": {
+      "base_url": "https://confluence.example.com",
+      "page_ids": [],
+      "space_keys": [
+        "ENG"
+      ],
+      "max_pages": 50,
+      "auth_mode": "none",
+      "language_mode": "auto"
+    },
+    "jira": {
+      "base_url": "https://jira.example.com",
+      "jql": "project = ENG ORDER BY updated DESC",
+      "max_issues": 100,
+      "include_comments": true,
+      "auth_mode": "none",
+      "language_mode": "auto"
+    },
+    "api_reference": {
+      "sources": [
+        "openapi.json"
+      ],
+      "include_operations": true,
+      "include_schemas": true,
+      "language_mode": "auto"
+    },
+    "pypi": {
+      "packages": [
+        "fastapi",
+        "pydantic"
+      ],
+      "include_release_history": true,
+      "max_releases_per_package": 10,
+      "include_project_urls": true,
+      "language_mode": "auto"
+    },
+    "github": {
+      "owners": [
+        "microsoft"
+      ],
+      "max_projects": 20,
+      "max_repos_per_owner": 10,
+      "include_readme": true,
+      "include_contributors": true,
+      "auth_mode": "none",
+      "language_mode": "auto"
+    },
+    "gitlab": {
+      "base_url": "https://gitlab.com",
+      "groups_or_users": [
+        "gitlab-org"
+      ],
+      "max_projects": 20,
+      "max_repos_per_owner": 10,
+      "include_readme": true,
+      "include_contributors": true,
+      "auth_mode": "none",
+      "language_mode": "auto"
+    },
+    "repo_code": {
+      "repos": [
+        "."
+      ],
+      "recursive": true,
+      "include_hidden": false,
+      "language_mode": "mixed"
+    },
+    "email_ticket": {
+      "sources": [
+        "tickets"
+      ],
+      "recursive": true,
+      "extensions": [
+        ".eml",
+        ".jsonl",
+        ".csv",
+        ".txt",
+        ".md"
+      ],
+      "language_mode": "auto"
+    },
+    "incremental_sync": {
+      "folders": [
+        "docs"
+      ],
+      "recursive": true,
+      "extensions": [
+        ".docx",
+        ".pdf",
+        ".xlsx",
+        ".txt",
+        ".md",
+        ".html"
+      ],
+      "state_file": ".rag_incremental_state.json",
+      "language_mode": "auto"
+    }
+  }
+}

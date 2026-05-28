@@ -1,0 +1,3 @@
+{"query":"function that adds numbers","expected_chunk_ids":["math_utils.py:0"],"filters":{"language":"python"}}
+{"query":"subtraction helper","expected_chunk_ids":["math_utils.py:0"],"filters":{"language":"python"}}
+{"query":"rag orchestration and retrieval","expected_chunk_ids":["rag_doc:0"],"filters":{"doctype":"note"}}

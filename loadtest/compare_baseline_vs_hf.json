@@ -1,0 +1,116 @@
+{
+  "timestamp_utc": "2026-05-27T14:41:27.839354+00:00",
+  "dataset": "datasets/retrieval_eval.jsonl",
+  "top_k": 2,
+  "loops": 60,
+  "results": [
+    {
+      "profile": "baseline_hash_cosine",
+      "quality": [
+        {
+          "strategy_name": "semantic",
+          "precision_at_k": 0.5,
+          "recall_at_k": 1.0,
+          "mrr": 1.0,
+          "ndcg_at_k": 1.0
+        },
+        {
+          "strategy_name": "hybrid",
+          "precision_at_k": 0.5,
+          "recall_at_k": 1.0,
+          "mrr": 1.0,
+          "ndcg_at_k": 1.0
+        },
+        {
+          "strategy_name": "semantic_cosine_rerank",
+          "precision_at_k": 0.5,
+          "recall_at_k": 1.0,
+          "mrr": 1.0,
+          "ndcg_at_k": 1.0
+        }
+      ],
+      "perf": [
+        {
+          "profile": "baseline_hash_cosine",
+          "strategy_name": "semantic",
+          "p50_ms": 0.2421000026515685,
+          "p95_ms": 0.4333749930083284,
+          "avg_ms": 0.271094999981061,
+          "throughput_qps": 3683.2714001332592
+        },
+        {
+          "profile": "baseline_hash_cosine",
+          "strategy_name": "hybrid",
+          "p50_ms": 0.2640999882714823,
+          "p95_ms": 0.43267999062663876,
+          "avg_ms": 0.2850877775927074,
+          "throughput_qps": 3502.7564742096833
+        },
+        {
+          "profile": "baseline_hash_cosine",
+          "strategy_name": "semantic_cosine_rerank",
+          "p50_ms": 0.2737500035436824,
+          "p95_ms": 0.5242600032943301,
+          "avg_ms": 0.31005055587027325,
+          "throughput_qps": 3221.1017959511214
+        }
+      ],
+      "ram_mb": 192.76953125,
+      "vram_mb": 0.0
+    },
+    {
+      "profile": "hf_embedder_hf_reranker",
+      "quality": [
+        {
+          "strategy_name": "semantic",
+          "precision_at_k": 0.5,
+          "recall_at_k": 1.0,
+          "mrr": 1.0,
+          "ndcg_at_k": 1.0
+        },
+        {
+          "strategy_name": "hybrid",
+          "precision_at_k": 0.5,
+          "recall_at_k": 1.0,
+          "mrr": 1.0,
+          "ndcg_at_k": 1.0
+        },
+        {
+          "strategy_name": "semantic_hf_rerank",
+          "precision_at_k": 0.5,
+          "recall_at_k": 1.0,
+          "mrr": 1.0,
+          "ndcg_at_k": 1.0
+        }
+      ],
+      "perf": [
+        {
+          "profile": "hf_embedder_hf_reranker",
+          "strategy_name": "semantic",
+          "p50_ms": 9.196949999022763,
+          "p95_ms": 10.013539993815357,
+          "avg_ms": 8.568707777400656,
+          "throughput_qps": 116.68561511570552
+        },
+        {
+          "profile": "hf_embedder_hf_reranker",
+          "strategy_name": "hybrid",
+          "p50_ms": 9.317800002463628,
+          "p95_ms": 10.030589998495998,
+          "avg_ms": 8.888183333167238,
+          "throughput_qps": 112.4891588582488
+        },
+        {
+          "profile": "hf_embedder_hf_reranker",
+          "strategy_name": "semantic_hf_rerank",
+          "p50_ms": 19.33550000831019,
+          "p95_ms": 21.637605003343197,
+          "avg_ms": 19.113404444457654,
+          "throughput_qps": 52.31403884985758
+        }
+      ],
+      "ram_mb": 593.8203125,
+      "vram_mb": 0.0
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+
+# Tool caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Packaging artifacts
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Local runtime databases and state
+*.db
+*.sqlite
+.rag_*.sqlite
+.incremental_state.json
+.rag_incremental_state.json
+*.lock
+
+# Coverage artifacts
+.coverage
+coverage.xml
+htmlcov/
+
+# IDE
+.vscode/
+.idea/

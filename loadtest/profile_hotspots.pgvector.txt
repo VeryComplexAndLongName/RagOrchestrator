@@ -1,0 +1,48 @@
+         395936 function calls (395252 primitive calls) in 3.071 seconds
+
+   Ordered by: cumulative time
+   List reduced from 495 to 40 due to restriction <40>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+      120    0.007    0.000    2.550    0.021 orchestrator.py:35(ingest)
+      240    0.002    0.000    1.858    0.008 dedup.py:45(add)
+      240    1.698    0.007    1.698    0.007 {method 'commit' of 'sqlite3.Connection' objects}
+     1080    0.002    0.000    0.815    0.001 connection.py:476(wait)
+     1080    0.005    0.000    0.813    0.001 waiting.py:251(wait_select)
+     1129    0.688    0.001    0.688    0.001 {built-in method select.select}
+      440    0.001    0.000    0.634    0.001 base.py:1375(execute)
+      440    0.001    0.000    0.633    0.001 elements.py:518(_execute_on_connection)
+      440    0.004    0.000    0.632    0.001 base.py:1591(_execute_clauseelement)
+      440    0.003    0.000    0.604    0.001 base.py:1791(_execute_context)
+      440    0.002    0.000    0.582    0.001 base.py:1850(_exec_single_context)
+      440    0.001    0.000    0.550    0.001 default.py:951(do_execute)
+      440    0.001    0.000    0.549    0.001 cursor.py:100(execute)
+      120    0.006    0.000    0.538    0.004 pgvector_provider.py:56(upsert_chunks)
+      200    0.002    0.000    0.521    0.003 orchestrator.py:64(search)
+      200    0.008    0.000    0.508    0.003 pgvector_provider.py:117(retrieve)
+1720/1080    0.001    0.000    0.336    0.000 {built-in method builtins.next}
+      640    0.002    0.000    0.302    0.000 base.py:3232(begin)
+      320    0.000    0.000    0.286    0.001 contextlib.py:145(__exit__)
+      320    0.001    0.000    0.272    0.001 util.py:129(__exit__)
+      320    0.000    0.000    0.271    0.001 base.py:2623(commit)
+      320    0.001    0.000    0.271    0.001 base.py:2740(_do_commit)
+      320    0.000    0.000    0.270    0.001 base.py:2715(_connection_commit_impl)
+      320    0.001    0.000    0.269    0.001 base.py:1132(_commit_impl)
+      320    0.001    0.000    0.269    0.001 default.py:714(do_commit)
+      320    0.001    0.000    0.268    0.001 connection.py:302(commit)
+      480    0.166    0.000    0.166    0.000 {method 'execute' of 'sqlite3.Connection' objects}
+     1249    0.003    0.000    0.097    0.000 _cursor_base.py:195(_execute_gen)
+      240    0.001    0.000    0.095    0.000 dedup.py:37(is_known)
+      480    0.001    0.000    0.087    0.000 dedup.py:13(_connect)
+      480    0.076    0.000    0.086    0.000 {built-in method _sqlite3.connect}
+     1129    0.003    0.000    0.073    0.000 {method 'send' of 'generator' objects}
+      929    0.014    0.000    0.045    0.000 _cursor_base.py:275(_maybe_prepare_gen)
+     1280    0.041    0.000    0.044    0.000 _connection_base.py:445(_exec_command)
+      440    0.016    0.000    0.043    0.000 hash_embedder.py:20(embed)
+      120    0.000    0.000    0.034    0.000 hash_embedder.py:37(embed_many)
+      760    0.002    0.000    0.030    0.000 _cursor_base.py:374(_start_query)
+      440    0.002    0.000    0.029    0.000 default.py:1850(_setup_result_proxy)
+      760    0.001    0.000    0.027    0.000 _connection_base.py:538(_start_query)
+      440    0.003    0.000    0.027    0.000 default.py:1921(_setup_dml_or_text_result)
+
+

@@ -1,0 +1,37 @@
+{
+  "timestamp_utc": "2026-05-27T13:01:46.254190+00:00",
+  "config": {
+    "providers": [
+      "sqlite+vec"
+    ],
+    "documents": 100,
+    "words_per_doc": 120,
+    "queries": 150,
+    "concurrency": 4,
+    "top_k": 5,
+    "dimensions": 64,
+    "seed": 42,
+    "qdrant_url": "http://localhost:6333",
+    "pg_dsn_present": false
+  },
+  "results": [
+    {
+      "backend": "sqlite+vec",
+      "status": "ok",
+      "reason": "",
+      "docs": 100,
+      "queries": 150,
+      "dimensions": 64,
+      "ingest_total_s": 2.0044271999940975,
+      "ingest_docs_per_s": 49.88956446025801,
+      "ingest_avg_ms": 20.041384000360267,
+      "ingest_p95_ms": 22.855795005307296,
+      "search_total_s": 1.1847779000090668,
+      "search_qps": 126.60600775795369,
+      "search_avg_ms": 31.29331000052237,
+      "search_p50_ms": 30.223750000004657,
+      "search_p95_ms": 41.794415008189375,
+      "search_p99_ms": 54.6037589982734
+    }
+  ]
+}
