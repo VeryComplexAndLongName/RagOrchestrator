@@ -4,13 +4,14 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rag_orchestrstor"
-version = "0.1.2"
+version = "0.1.3"
 description = "Universal RAG orchestration layer with pluggable vector DB adapters"
-readme = "README.md"
+readme = { file = "README.md", content-type = "text/markdown" }
 requires-python = ">=3.11"
 license = "MIT"
+license-files = ["LICENSE"]
 authors = [
-  {name = "Alexander Ivanov", email = "VeryComplexAndLongName@gamil.com"},
+  {name = "Alexander Ivanov", email = "VeryComplexAndLongName@gmail.com"},
 ]
 keywords = ["rag", "retrieval", "orchestration", "vector-database", "llm"]
 classifiers = [
@@ -20,6 +21,7 @@ classifiers = [
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
+  "Operating System :: OS Independent",
   "Topic :: Scientific/Engineering :: Artificial Intelligence",
   "Topic :: Software Development :: Libraries :: Python Modules",
 ]
@@ -27,6 +29,11 @@ dependencies = [
   "pydantic>=2.8,<3",
   "typing-extensions>=4.10",
 ]
+
+[project.urls]
+Homepage = "https://github.com/VeryComplexAndLongName/RagOrchestrator"
+Repository = "https://github.com/VeryComplexAndLongName/RagOrchestrator.git"
+Issues = "https://github.com/VeryComplexAndLongName/RagOrchestrator/issues"
 
 [project.optional-dependencies]
 qdrant = ["qdrant-client>=1.9"]
