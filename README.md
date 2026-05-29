@@ -213,7 +213,7 @@ The report returns precision@k, recall@k and MRR for each strategy.
 
 ## Publishing to PyPI and GitHub
 
-This repository is configured to publish the distribution name `rag_orchestrstor`.
+This repository is configured to publish the distribution name `rag_orchestrator`.
 
 Import path stays the same:
 
@@ -224,8 +224,20 @@ import rag_orchestrator
 Install from PyPI:
 
 ```bash
-pip install rag_orchestrstor
+pip install rag_orchestrator
 ```
+
+If you plan to use provider-specific backends, install extras:
+
+```bash
+pip install "rag_orchestrator[qdrant]"
+pip install "rag_orchestrator[pgvector]"
+```
+
+What each extra installs:
+
+- `qdrant`: `qdrant-client>=1.9`
+- `pgvector`: `sqlalchemy>=2.0`, `psycopg[binary]>=3.1`, `pgvector>=0.3`
 
 ### Local preflight before release
 
@@ -239,7 +251,7 @@ python -m twine check dist/*
 
 ### GitHub + PyPI release flow
 
-1. Create a PyPI project named `rag-orchestrstor` (PyPI normalizes `_` to `-`).
+1. Create a PyPI project named `rag-orchestrator` (PyPI normalizes `_` to `-`).
 2. In GitHub repo settings:
     - Enable GitHub Actions for the repo.
 3. In PyPI project settings, configure Trusted Publishing:
@@ -807,6 +819,12 @@ pip install -e .[pgvector]
 pip install -e .[hf]
 pip install -e .[all]
 ```
+
+What each extra installs:
+
+- `qdrant`: `qdrant-client>=1.9`
+- `pgvector`: `sqlalchemy>=2.0`, `psycopg[binary]>=3.1`, `pgvector>=0.3`
+- `hf`: `sentence-transformers>=3.0`
 
 ## Repository Structure (What Is Required)
 
