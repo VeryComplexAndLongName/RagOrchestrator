@@ -136,7 +136,7 @@ def _fallback_summary_provider_to_none(
         return False
 
     try:
-        config.provider = "none"
+        setattr(config, "provider", "none")
         summary_llm.client = None
         logger.json(
             "SUMMARY PROVIDER FALLBACK",
