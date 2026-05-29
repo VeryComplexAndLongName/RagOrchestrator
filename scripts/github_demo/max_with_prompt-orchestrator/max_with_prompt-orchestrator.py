@@ -43,7 +43,6 @@ from ragflow_orchestrator.presets import document_preset  # noqa: E402
 from ragflow_orchestrator.templates.github_template import GitHubTemplate  # noqa: E402
 from ragflow_orchestrator.templates.models import GitHubConfig  # noqa: E402
 
-
 DEFAULT_BOOTSTRAP_OWNERS = ["fastapi", "sqlalchemy", "pydantic"]
 
 try:
