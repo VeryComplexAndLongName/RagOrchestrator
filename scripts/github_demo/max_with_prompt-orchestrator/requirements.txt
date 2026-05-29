@@ -1,0 +1,2 @@
+-e ../../..
+prompt-orchestrator>=0.1.3
