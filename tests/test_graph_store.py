@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from rag_orchestrator.graph import SqlGraphStore
+from ragflow_orchestrator.graph import SqlGraphStore
 
 
 def test_graph_store_queries(tmp_path: Path) -> None:

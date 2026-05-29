@@ -9,8 +9,8 @@ from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 
-from rag_orchestrator import HashEmbedder, RAGOrchestrator, create_provider, document_preset
-from rag_orchestrator.perf import summarize_latencies
+from ragflow_orchestrator import HashEmbedder, RAGOrchestrator, create_provider, document_preset
+from ragflow_orchestrator.perf import summarize_latencies
 
 
 @dataclass(slots=True)

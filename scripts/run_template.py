@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import sys
 
-from rag_orchestrator.templates.runner import run_template_from_json
+from ragflow_orchestrator.templates.runner import run_template_from_json
 
 
 def main() -> int:

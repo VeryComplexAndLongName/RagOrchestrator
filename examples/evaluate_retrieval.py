@@ -1,10 +1,10 @@
 import os
 
-from rag_orchestrator.embedding import HashEmbedder, OllamaEmbedder
-from rag_orchestrator.evaluation import RerankProfileConfig, evaluate_rerank_profiles
-from rag_orchestrator.factory import create_provider
-from rag_orchestrator.orchestrator import RAGOrchestrator
-from rag_orchestrator.presets import document_preset
+from ragflow_orchestrator.embedding import HashEmbedder, OllamaEmbedder
+from ragflow_orchestrator.evaluation import RerankProfileConfig, evaluate_rerank_profiles
+from ragflow_orchestrator.factory import create_provider
+from ragflow_orchestrator.orchestrator import RAGOrchestrator
+from ragflow_orchestrator.presets import document_preset
 
 
 def build_demo_index() -> tuple[object, object]:

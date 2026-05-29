@@ -6,7 +6,7 @@ import pstats
 import random
 from pathlib import Path
 
-from rag_orchestrator import HashEmbedder, RAGOrchestrator, create_provider, document_preset
+from ragflow_orchestrator import HashEmbedder, RAGOrchestrator, create_provider, document_preset
 
 
 def _build_text(i: int, words: int, rnd: random.Random) -> str:

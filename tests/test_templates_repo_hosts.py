@@ -3,13 +3,13 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from rag_orchestrator.embedding import HashEmbedder
-from rag_orchestrator.factory import create_provider
-from rag_orchestrator.graph import SqlGraphStore
-from rag_orchestrator.orchestrator import RAGOrchestrator
-from rag_orchestrator.presets import document_preset
-from rag_orchestrator.templates import GitHubConfig, GitHubTemplate, GitLabConfig, GitLabTemplate, LanguageMode
-from rag_orchestrator.templates.runner import run_template_from_json
+from ragflow_orchestrator.embedding import HashEmbedder
+from ragflow_orchestrator.factory import create_provider
+from ragflow_orchestrator.graph import SqlGraphStore
+from ragflow_orchestrator.orchestrator import RAGOrchestrator
+from ragflow_orchestrator.presets import document_preset
+from ragflow_orchestrator.templates import GitHubConfig, GitHubTemplate, GitLabConfig, GitLabTemplate, LanguageMode
+from ragflow_orchestrator.templates.runner import run_template_from_json
 
 
 def _build_orchestrator(tmp_path: Path) -> RAGOrchestrator:
@@ -96,7 +96,7 @@ def test_gitlab_template_with_stubs(tmp_path: Path) -> None:
 
 def test_run_template_from_json_with_github(monkeypatch, tmp_path: Path) -> None:
     monkeypatch.setattr(
-        "rag_orchestrator.templates.github_template.GitHubTemplate._list_owner_repos",
+        "ragflow_orchestrator.templates.github_template.GitHubTemplate._list_owner_repos",
         lambda self, cfg, owner: [
             {
                 "id": 3,
@@ -110,11 +110,11 @@ def test_run_template_from_json_with_github(monkeypatch, tmp_path: Path) -> None
         ],
     )
     monkeypatch.setattr(
-        "rag_orchestrator.templates.github_template.GitHubTemplate._list_contributors",
+        "ragflow_orchestrator.templates.github_template.GitHubTemplate._list_contributors",
         lambda self, cfg, full_name: [],
     )
     monkeypatch.setattr(
-        "rag_orchestrator.templates.github_template.GitHubTemplate._get_readme",
+        "ragflow_orchestrator.templates.github_template.GitHubTemplate._get_readme",
         lambda self, cfg, full_name: "README",
     )
 

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from rag_orchestrator.quality import RetrievalEvalCase, evaluate_retrieval
+from ragflow_orchestrator.quality import RetrievalEvalCase, evaluate_retrieval
 
 
 def test_evaluate_retrieval_includes_ndcg() -> None:

@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import pytest
 
-from rag_orchestrator.adapters.qdrant_provider import QdrantProvider
-from rag_orchestrator.errors import ProviderDependencyError
-from rag_orchestrator.models import RetrievalQuery
+from ragflow_orchestrator.adapters.qdrant_provider import QdrantProvider
+from ragflow_orchestrator.errors import ProviderDependencyError
+from ragflow_orchestrator.models import RetrievalQuery
 
 
 @pytest.mark.integration

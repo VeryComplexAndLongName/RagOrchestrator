@@ -1,5 +1,5 @@
-from rag_orchestrator import HashEmbedder, RAGOrchestrator, create_provider, document_preset
-from rag_orchestrator.query_engine import RAGQueryEngine
+from ragflow_orchestrator import HashEmbedder, RAGOrchestrator, create_provider, document_preset
+from ragflow_orchestrator.query_engine import RAGQueryEngine
 
 
 def main() -> None:

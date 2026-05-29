@@ -3,12 +3,12 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from rag_orchestrator.embedding import HashEmbedder
-from rag_orchestrator.factory import create_provider
-from rag_orchestrator.orchestrator import RAGOrchestrator
-from rag_orchestrator.presets import document_preset
-from rag_orchestrator.templates import LanguageMode, PyPIConfig, PyPITemplate
-from rag_orchestrator.templates.runner import run_template_from_json
+from ragflow_orchestrator.embedding import HashEmbedder
+from ragflow_orchestrator.factory import create_provider
+from ragflow_orchestrator.orchestrator import RAGOrchestrator
+from ragflow_orchestrator.presets import document_preset
+from ragflow_orchestrator.templates import LanguageMode, PyPIConfig, PyPITemplate
+from ragflow_orchestrator.templates.runner import run_template_from_json
 
 
 def _build_orchestrator(tmp_path: Path) -> RAGOrchestrator:
@@ -152,7 +152,7 @@ def test_pypi_build_chunks_has_short_fact_url_chunk_and_plain_markdown() -> None
 
 def test_run_template_from_json_with_pypi(monkeypatch, tmp_path: Path) -> None:
     monkeypatch.setattr(
-        "rag_orchestrator.templates.pypi.PyPITemplate._fetch_package_payload",
+        "ragflow_orchestrator.templates.pypi.PyPITemplate._fetch_package_payload",
         lambda self, package: {
             "info": {
                 "name": package,

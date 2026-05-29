@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from rag_orchestrator.config import ConfigStore, EmbeddingConfig, ModuleConfig, PipelineConfig, ProviderConfig
-from rag_orchestrator.orchestrator_factory import RAGOrchestratorFactory
+from ragflow_orchestrator.config import ConfigStore, EmbeddingConfig, ModuleConfig, PipelineConfig, ProviderConfig
+from ragflow_orchestrator.orchestrator_factory import RAGOrchestratorFactory
 
 
 def test_factory_from_config_store(tmp_path: Path) -> None:

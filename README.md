@@ -1,14 +1,14 @@
-# rag_orchestrator
+# ragflow_orchestrator
 
 Universal and extensible RAG module with standardized interfaces and storage adapters.
 
-![Rag Orchestrator](RagOrchestrator.png)
+![Ragflow Orchestrator](RagflowOrchestrator.png)
 
 ## Authors
 
 - Alexander Ivanov
 - email: VeryComplexAndLongName@gamil.com
-- Telegram: alexander_ivan0v
+- Telegram: @alexander_ivan0v
 
 ## Goals
 
@@ -59,7 +59,7 @@ Extended chunk types are supported (`CodeChunk`, `ContractChunk`) and custom mod
 Use local Ollama embeddings in production mode:
 
 ```python
-from rag_orchestrator.embedding import OllamaEmbedder
+from ragflow_orchestrator.embedding import OllamaEmbedder
 
 embedder = OllamaEmbedder(model="nomic-embed-text:latest")
 print(embedder.dimensions)
@@ -68,7 +68,7 @@ print(embedder.dimensions)
 Provider and model are configurable via settings; no provider is hardwired in orchestrator factory.
 
 ```python
-from rag_orchestrator import (
+from ragflow_orchestrator import (
     ConfigStore,
     EmbeddingConfig,
     ModuleConfig,
@@ -96,7 +96,7 @@ orchestrator = RAGOrchestratorFactory.from_config_store(store)
 Discover available local models:
 
 ```python
-from rag_orchestrator.embedding import OllamaEmbedder
+from ragflow_orchestrator.embedding import OllamaEmbedder
 
 print(OllamaEmbedder.list_models())
 ```
@@ -106,7 +106,7 @@ Recommended CPU-friendly default: `nomic-embed-text:latest`.
 Use factory:
 
 ```python
-from rag_orchestrator.factory import create_provider
+from ragflow_orchestrator.factory import create_provider
 
 provider = create_provider("sqlite+vec", db_path="rag.db")
 ```
@@ -114,10 +114,10 @@ provider = create_provider("sqlite+vec", db_path="rag.db")
 ## Quick Start
 
 ```python
-from rag_orchestrator.factory import create_provider
-from rag_orchestrator.orchestrator import RAGOrchestrator
-from rag_orchestrator.embedding import HashEmbedder
-from rag_orchestrator.presets import document_preset
+from ragflow_orchestrator.factory import create_provider
+from ragflow_orchestrator.orchestrator import RAGOrchestrator
+from ragflow_orchestrator.embedding import HashEmbedder
+from ragflow_orchestrator.presets import document_preset
 
 provider = create_provider("sqlite+vec", db_path="rag.db")
 preset = document_preset()
@@ -143,7 +143,7 @@ for hit in hits:
 ## Migration Example
 
 ```python
-from rag_orchestrator.migrations import JsonFileMigrationStore, MigrationManager, MigrationStepDef
+from ragflow_orchestrator.migrations import JsonFileMigrationStore, MigrationManager, MigrationStepDef
 
 steps = [
     MigrationStepDef(
@@ -165,7 +165,7 @@ manager.upgrade()
 Schema evolution helper example:
 
 ```python
-from rag_orchestrator.migrations import add_field_sql
+from ragflow_orchestrator.migrations import add_field_sql
 
 sql = add_field_sql("pgvector", "rag_chunks", "tenant_id", "TEXT")
 print(sql)
@@ -174,7 +174,7 @@ print(sql)
 ## Quality Evaluation
 
 ```python
-from rag_orchestrator.quality import evaluate_chunks, evaluate_retrieval, RetrievalEvalCase
+from ragflow_orchestrator.quality import evaluate_chunks, evaluate_retrieval, RetrievalEvalCase
 
 chunk_report = evaluate_chunks(chunks)
 
@@ -213,25 +213,25 @@ The report returns precision@k, recall@k and MRR for each strategy.
 
 ## Publishing to PyPI and GitHub
 
-This repository is configured to publish the distribution name `rag_orchestrator`.
+This repository is configured to publish the distribution name `ragflow_orchestrator`.
 
 Import path stays the same:
 
 ```python
-import rag_orchestrator
+import ragflow_orchestrator
 ```
 
 Install from PyPI:
 
 ```bash
-pip install rag_orchestrator
+pip install ragflow_orchestrator
 ```
 
 If you plan to use provider-specific backends, install extras:
 
 ```bash
-pip install "rag_orchestrator[qdrant]"
-pip install "rag_orchestrator[pgvector]"
+pip install "ragflow_orchestrator[qdrant]"
+pip install "ragflow_orchestrator[pgvector]"
 ```
 
 What each extra installs:
@@ -298,16 +298,16 @@ How integration works:
 
 Compatibility building blocks:
 
-- `DocChunk` model in [src/rag_orchestrator/context.py](src/rag_orchestrator/context.py)
-- abstract `RAGProvider` in [src/rag_orchestrator/rag/base.py](src/rag_orchestrator/rag/base.py)
-- `PromptStyleRAGProviderAdapter` bridge in [src/rag_orchestrator/rag/compat.py](src/rag_orchestrator/rag/compat.py)
+- `DocChunk` model in [src/ragflow_orchestrator/context.py](src/ragflow_orchestrator/context.py)
+- abstract `RAGProvider` in [src/ragflow_orchestrator/rag/base.py](src/ragflow_orchestrator/rag/base.py)
+- `PromptStyleRAGProviderAdapter` bridge in [src/ragflow_orchestrator/rag/compat.py](src/ragflow_orchestrator/rag/compat.py)
 
-This keeps rag_orchestrator internals storage-oriented while exposing prompt_orchestrator-style `retrieve(query, limit)` contract where needed.
+This keeps ragflow_orchestrator internals storage-oriented while exposing prompt_orchestrator-style `retrieve(query, limit)` contract where needed.
 
 Example 1: factory bootstrap (aligned with PromptOrchestrator style):
 
 ```python
-from rag_orchestrator import (
+from ragflow_orchestrator import (
     ConfigStore,
     EmbeddingConfig,
     ModuleConfig,
@@ -339,9 +339,9 @@ for doc in docs:
 Example 2: explicit adapter for an existing provider/embedder pair:
 
 ```python
-from rag_orchestrator.embedding import HashEmbedder
-from rag_orchestrator.factory import create_provider
-from rag_orchestrator.rag.compat import PromptStyleRAGProviderAdapter
+from ragflow_orchestrator.embedding import HashEmbedder
+from ragflow_orchestrator.factory import create_provider
+from ragflow_orchestrator.rag.compat import PromptStyleRAGProviderAdapter
 
 provider = create_provider("sqlite+vec", db_path="rag.db")
 embedder = HashEmbedder(dimensions=256)
@@ -480,7 +480,7 @@ Language handling modes:
 Quick example:
 
 ```python
-from rag_orchestrator import (
+from ragflow_orchestrator import (
     DocumentFolderConfig,
     DocumentFolderTemplate,
     HashEmbedder,
@@ -636,7 +636,7 @@ If no generator is configured, it returns a deterministic context-based fallback
 You can plug in any LLM adapter (including prompt_orchestrator-based prompt construction) via `AnswerGenerator`.
 
 ```python
-from rag_orchestrator.query_engine import RAGQueryEngine
+from ragflow_orchestrator.query_engine import RAGQueryEngine
 
 engine = RAGQueryEngine(orchestrator)
 result = engine.answer("Найди репозитории для Telegram-ботов", top_k=5)
@@ -830,7 +830,7 @@ What each extra installs:
 
 Required for source distribution/publication:
 
-- `src/rag_orchestrator/`: package source code.
+- `src/ragflow_orchestrator/`: package source code.
 - `pyproject.toml`: build system and package metadata.
 - `README.md`: project description used on PyPI.
 - `LICENSE`: license text.

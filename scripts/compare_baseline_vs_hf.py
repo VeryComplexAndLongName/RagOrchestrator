@@ -7,13 +7,13 @@ from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 
-from rag_orchestrator.embedding import HashEmbedder, create_embedder
-from rag_orchestrator.evaluation import RerankProfileConfig, evaluate_rerank_profiles
-from rag_orchestrator.factory import create_provider
-from rag_orchestrator.orchestrator import RAGOrchestrator
-from rag_orchestrator.perf import summarize_latencies
-from rag_orchestrator.presets import document_preset
-from rag_orchestrator.retrieval import (
+from ragflow_orchestrator.embedding import HashEmbedder, create_embedder
+from ragflow_orchestrator.evaluation import RerankProfileConfig, evaluate_rerank_profiles
+from ragflow_orchestrator.factory import create_provider
+from ragflow_orchestrator.orchestrator import RAGOrchestrator
+from ragflow_orchestrator.perf import summarize_latencies
+from ragflow_orchestrator.presets import document_preset
+from ragflow_orchestrator.retrieval import (
     CosineReranker,
     HybridRetriever,
     RerankedRetriever,
