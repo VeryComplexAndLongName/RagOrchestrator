@@ -1,4 +1,4 @@
-from rag_orchestrator import (
+from ragflow_orchestrator import (
     DocumentFolderConfig,
     DocumentFolderTemplate,
     HashEmbedder,

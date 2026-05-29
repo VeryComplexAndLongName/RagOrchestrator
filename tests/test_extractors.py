@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from rag_orchestrator.templates.extractors import extract_text
+from ragflow_orchestrator.templates.extractors import extract_text
 
 
 def test_extract_text_decodes_cp1251_txt(tmp_path) -> None:

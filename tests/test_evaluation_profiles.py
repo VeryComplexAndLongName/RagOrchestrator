@@ -2,11 +2,11 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from rag_orchestrator.embedding import HashEmbedder
-from rag_orchestrator.evaluation import RerankProfileConfig, evaluate_rerank_profiles
-from rag_orchestrator.factory import create_provider
-from rag_orchestrator.orchestrator import RAGOrchestrator
-from rag_orchestrator.presets import document_preset
+from ragflow_orchestrator.embedding import HashEmbedder
+from ragflow_orchestrator.evaluation import RerankProfileConfig, evaluate_rerank_profiles
+from ragflow_orchestrator.factory import create_provider
+from ragflow_orchestrator.orchestrator import RAGOrchestrator
+from ragflow_orchestrator.presets import document_preset
 
 
 def test_evaluate_rerank_profiles_with_cosine(tmp_path: Path) -> None:

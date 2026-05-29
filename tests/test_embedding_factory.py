@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from rag_orchestrator.embedding import HashEmbedder, create_embedder
-from rag_orchestrator.errors import ConfigurationError
+from ragflow_orchestrator.embedding import HashEmbedder, create_embedder
+from ragflow_orchestrator.errors import ConfigurationError
 
 
 def test_create_embedder_hash_from_options() -> None:

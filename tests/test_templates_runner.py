@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from rag_orchestrator.templates.runner import run_template_from_json
+from ragflow_orchestrator.templates.runner import run_template_from_json
 
 
 def test_run_template_from_json_with_repo_code(tmp_path: Path) -> None:

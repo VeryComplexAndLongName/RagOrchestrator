@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from rag_orchestrator.embedding import OllamaEmbedder
+from ragflow_orchestrator.embedding import OllamaEmbedder
 
 
 @pytest.mark.integration

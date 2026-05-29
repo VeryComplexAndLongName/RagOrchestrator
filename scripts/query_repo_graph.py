@@ -3,7 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 
-from rag_orchestrator.graph import SqlGraphStore
+from ragflow_orchestrator.graph import SqlGraphStore
 
 
 def main() -> int:

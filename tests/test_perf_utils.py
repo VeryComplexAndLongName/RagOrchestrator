@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from rag_orchestrator.perf import percentile_ms, summarize_latencies
+from ragflow_orchestrator.perf import percentile_ms, summarize_latencies
 
 
 def test_percentile_and_summary() -> None:

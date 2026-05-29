@@ -1,7 +1,7 @@
-from rag_orchestrator.embedding import HashEmbedder
-from rag_orchestrator.factory import create_provider
-from rag_orchestrator.orchestrator import RAGOrchestrator
-from rag_orchestrator.presets import code_preset
+from ragflow_orchestrator.embedding import HashEmbedder
+from ragflow_orchestrator.factory import create_provider
+from ragflow_orchestrator.orchestrator import RAGOrchestrator
+from ragflow_orchestrator.presets import code_preset
 
 
 def main() -> None:

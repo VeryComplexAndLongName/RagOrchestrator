@@ -5,8 +5,8 @@ from datetime import datetime, timezone
 
 import pytest
 
-from rag_orchestrator.embedding import HashEmbedder
-from rag_orchestrator.models import BaseChunk
+from ragflow_orchestrator.embedding import HashEmbedder
+from ragflow_orchestrator.models import BaseChunk
 
 
 def pytest_configure(config: pytest.Config) -> None:

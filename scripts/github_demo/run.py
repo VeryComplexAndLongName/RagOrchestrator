@@ -51,14 +51,14 @@ _REPO_SRC = Path(__file__).resolve().parents[2] / "src"
 if str(_REPO_SRC) not in sys.path:
     sys.path.insert(0, str(_REPO_SRC))
 
-from rag_orchestrator.embedding import OllamaEmbedder  # noqa: E402
-from rag_orchestrator.factory import create_provider  # noqa: E402
-from rag_orchestrator.graph import SqlGraphStore  # noqa: E402
-from rag_orchestrator.orchestrator import RAGOrchestrator  # noqa: E402
-from rag_orchestrator.presets import document_preset  # noqa: E402
-from rag_orchestrator.query_engine import QueryAnswer, RAGQueryEngine  # noqa: E402
-from rag_orchestrator.templates.github_template import GitHubTemplate  # noqa: E402
-from rag_orchestrator.templates.models import GitHubConfig  # noqa: E402
+from ragflow_orchestrator.embedding import OllamaEmbedder  # noqa: E402
+from ragflow_orchestrator.factory import create_provider  # noqa: E402
+from ragflow_orchestrator.graph import SqlGraphStore  # noqa: E402
+from ragflow_orchestrator.orchestrator import RAGOrchestrator  # noqa: E402
+from ragflow_orchestrator.presets import document_preset  # noqa: E402
+from ragflow_orchestrator.query_engine import QueryAnswer, RAGQueryEngine  # noqa: E402
+from ragflow_orchestrator.templates.github_template import GitHubTemplate  # noqa: E402
+from ragflow_orchestrator.templates.models import GitHubConfig  # noqa: E402
 
 
 def _open_no_proxy(req: _urllib_request.Request, timeout: int) -> bytes:

@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import pytest
 
-from rag_orchestrator.adapters.pgvector_provider import PGVectorProvider
-from rag_orchestrator.models import RetrievalQuery
+from ragflow_orchestrator.adapters.pgvector_provider import PGVectorProvider
+from ragflow_orchestrator.models import RetrievalQuery
 
 
 @pytest.mark.integration
