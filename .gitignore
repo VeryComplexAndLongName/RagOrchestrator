@@ -34,3 +34,10 @@ htmlcov/
 # IDE
 .vscode/
 .idea/
+
+# Logs and temporary files
+*.log
+temp/
+*.tmp
+*.bak
+*.temp
