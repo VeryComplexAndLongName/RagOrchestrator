@@ -1,5 +1,5 @@
 from __future__ import annotations
-
+from typing import Literal
 from enum import Enum
 
 from pydantic import BaseModel, Field
@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field
 from ragflow_orchestrator.config.module_config import ModuleConfig
 from ragflow_orchestrator.orchestrator import IngestSummary
 
+LanguageDetectionMode = Literal["auto", "none", "force"]
 
 class LanguageMode(str, Enum):
     AUTO = "auto"
@@ -179,3 +180,32 @@ class TemplatesConfig(BaseModel):
     experiment_log: TemplateExperimentLogConfig = Field(default_factory=TemplateExperimentLogConfig)
     active_scenario: str = "document_folder"
     scenarios: dict[str, dict] = Field(default_factory=dict)
+
+class BitrixConfig(BaseModel):
+    domain: str                     # <domain>.bitrix24.ru
+    user_id: int                    # ID webhook user
+    token: str                      # user token
+
+    language_mode: LanguageDetectionMode = "auto"
+
+    include_contacts: bool = True
+    include_companies: bool = True
+    include_deals: bool = True
+    include_leads: bool = True
+    include_tasks: bool = True
+    include_activities: bool = True
+    include_im_dialogs: bool = False
+
+    max_contacts: int = 1000
+    max_companies: int = 1000
+    max_deals: int = 1000
+    max_leads: int = 1000
+    max_tasks: int = 1000
+    max_activities: int = 1000
+    max_dialog_messages: int = 200
+
+    dialog_ids: list[str] = Field(default_factory=list)
+
+    @property
+    def base_url(self) -> str:
+        return f"https://{self.domain}/rest/{self.user_id}/{self.token}"
