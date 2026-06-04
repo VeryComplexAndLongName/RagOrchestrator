@@ -2,12 +2,10 @@ from __future__ import annotations
 from typing import Literal
 from enum import Enum
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, HttpUrl
 
 from ragflow_orchestrator.config.module_config import ModuleConfig
 from ragflow_orchestrator.orchestrator import IngestSummary
-
-LanguageDetectionMode = Literal["auto", "none", "force"]
 
 class LanguageMode(str, Enum):
     AUTO = "auto"
@@ -182,11 +180,11 @@ class TemplatesConfig(BaseModel):
     scenarios: dict[str, dict] = Field(default_factory=dict)
 
 class BitrixConfig(BaseModel):
-    domain: str                     # <domain>.bitrix24.ru
+    domain: HttpUrl                 # <domain>.bitrix24.ru
     user_id: int                    # ID webhook user
     token: str                      # user token
 
-    language_mode: LanguageDetectionMode = "auto"
+    language_mode: LanguageMode = LanguageMode.AUTO
 
     include_contacts: bool = True
     include_companies: bool = True
