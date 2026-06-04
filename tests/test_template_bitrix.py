@@ -78,7 +78,8 @@ def test_bitrix_template_ingests_contact_with_stub_payload(tmp_path: Path) -> No
 
     def fake_request_json(config: BitrixConfig, method: str, params: dict[str, object] | None) -> dict[str, object]:
         del config
-        start = int((params or {}).get("start", 0))
+        start_raw = (params or {}).get("start", 0)
+        start = int(start_raw) if isinstance(start_raw, (int, str)) else 0
         if method == "crm.contact.list" and start == 0:
             return {
                 "result": [
@@ -124,7 +125,8 @@ def test_bitrix_template_ingests_task_with_result_tasks_key(tmp_path: Path) -> N
 
     def fake_request_json(config: BitrixConfig, method: str, params: dict[str, object] | None) -> dict[str, object]:
         del config
-        start = int((params or {}).get("start", 0))
+        start_raw = (params or {}).get("start", 0)
+        start = int(start_raw) if isinstance(start_raw, (int, str)) else 0
         if method == "tasks.task.list" and start == 0:
             return {
                 "result": {

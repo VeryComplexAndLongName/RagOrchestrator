@@ -2,13 +2,13 @@ from __future__ import annotations
 
 import json
 from typing import Any, Dict, Iterable, List, Tuple
-from urllib import request, parse
+from urllib import parse, request
 
 from ragflow_orchestrator.templates.base import BaseIngestionTemplate
 from ragflow_orchestrator.templates.models import (
     BitrixConfig,
-    TemplateRunReport,
     IngestionError,
+    TemplateRunReport,
 )
 
 
@@ -530,7 +530,7 @@ class BitrixTemplate(BaseIngestionTemplate):
         payload: dict[str, Any],
         path: str,
     ) -> Any:
-        current = payload
+        current: Any = payload
 
         for part in path.split("."):
             if not isinstance(current, dict):

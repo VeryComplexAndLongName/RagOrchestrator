@@ -1,10 +1,12 @@
 from __future__ import annotations
+
 from enum import Enum
 
 from pydantic import BaseModel, Field, SecretStr, field_validator, model_validator
 
 from ragflow_orchestrator.config.module_config import ModuleConfig
 from ragflow_orchestrator.orchestrator import IngestSummary
+
 
 class LanguageMode(str, Enum):
     AUTO = "auto"
