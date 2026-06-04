@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import Literal
 from enum import Enum
 
-from pydantic import BaseModel, Field, HttpUrl
+from pydantic import BaseModel, Field, field_validator
 
 from ragflow_orchestrator.config.module_config import ModuleConfig
 from ragflow_orchestrator.orchestrator import IngestSummary
@@ -180,7 +180,7 @@ class TemplatesConfig(BaseModel):
     scenarios: dict[str, dict] = Field(default_factory=dict)
 
 class BitrixConfig(BaseModel):
-    domain: HttpUrl                 # <domain>.bitrix24.ru
+    domain: str                     # <domain>.bitrix24.ru
     user_id: int                    # ID webhook user
     token: str                      # user token
 
@@ -204,6 +204,23 @@ class BitrixConfig(BaseModel):
 
     dialog_ids: list[str] = Field(default_factory=list)
 
+    @field_validator("domain")
+    @classmethod
+    def normalize_domain(cls, value: str) -> str:
+        value = value.strip()
+        value = value.removeprefix("https://")
+        value = value.removeprefix("http://")
+        value = value.rstrip("/")
+
+        if not value:
+            raise ValueError("domain cannot be empty")
+
+        return value
+
     @property
     def base_url(self) -> str:
-        return f"https://{self.domain}/rest/{self.user_id}/{self.token}"
+        return (
+            f"https://{self.domain}"
+            f"/rest/{self.user_id}/{self.token}"
+        )
+    
