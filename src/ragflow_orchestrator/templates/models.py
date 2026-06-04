@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import Literal
 from enum import Enum
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, SecretStr, field_validator, model_validator
 
 from ragflow_orchestrator.config.module_config import ModuleConfig
 from ragflow_orchestrator.orchestrator import IngestSummary
@@ -181,8 +181,8 @@ class TemplatesConfig(BaseModel):
 
 class BitrixConfig(BaseModel):
     domain: str                     # <domain>.bitrix24.ru
-    user_id: int                    # ID webhook user
-    token: str                      # user token
+    user_id: int = Field(ge=1)      # ID webhook user
+    token: SecretStr                # user token
 
     language_mode: LanguageMode = LanguageMode.AUTO
 
@@ -194,13 +194,13 @@ class BitrixConfig(BaseModel):
     include_activities: bool = True
     include_im_dialogs: bool = False
 
-    max_contacts: int = 1000
-    max_companies: int = 1000
-    max_deals: int = 1000
-    max_leads: int = 1000
-    max_tasks: int = 1000
-    max_activities: int = 1000
-    max_dialog_messages: int = 200
+    max_contacts: int = Field(default=1000, ge=1)
+    max_companies: int = Field(default=1000, ge=1)
+    max_deals: int = Field(default=1000, ge=1)
+    max_leads: int = Field(default=1000, ge=1)
+    max_tasks: int = Field(default=1000, ge=1)
+    max_activities: int = Field(default=1000, ge=1)
+    max_dialog_messages: int = Field(default=200, ge=1)
 
     dialog_ids: list[str] = Field(default_factory=list)
 
@@ -215,12 +215,52 @@ class BitrixConfig(BaseModel):
         if not value:
             raise ValueError("domain cannot be empty")
 
+        if any(ch in value for ch in ("/", "?", "#")):
+            raise ValueError("domain must contain host only, without path/query/fragment")
+
+        if " " in value:
+            raise ValueError("domain cannot contain whitespace")
+
         return value
+
+    @field_validator("token")
+    @classmethod
+    def validate_token(cls, value: SecretStr) -> SecretStr:
+        token = value.get_secret_value().strip()
+        if not token:
+            raise ValueError("token cannot be empty")
+        return SecretStr(token)
+
+    @field_validator("dialog_ids", mode="before")
+    @classmethod
+    def normalize_dialog_ids(cls, value: object) -> list[str]:
+        if value is None:
+            return []
+
+        if not isinstance(value, list):
+            raise ValueError("dialog_ids must be a list of strings")
+
+        normalized: list[str] = []
+        seen: set[str] = set()
+        for raw_item in value:
+            item = str(raw_item).strip()
+            if not item or item in seen:
+                continue
+            seen.add(item)
+            normalized.append(item)
+
+        return normalized
+
+    @model_validator(mode="after")
+    def validate_im_dialog_dependency(self) -> "BitrixConfig":
+        if self.include_im_dialogs and not self.dialog_ids:
+            raise ValueError("dialog_ids must be provided when include_im_dialogs is true")
+        return self
 
     @property
     def base_url(self) -> str:
         return (
             f"https://{self.domain}"
-            f"/rest/{self.user_id}/{self.token}"
+            f"/rest/{self.user_id}/{self.token.get_secret_value()}"
         )
     

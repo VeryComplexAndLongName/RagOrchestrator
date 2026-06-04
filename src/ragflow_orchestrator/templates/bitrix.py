@@ -91,6 +91,14 @@ class BitrixTemplate(BaseIngestionTemplate):
                 report=report,
             )
 
+        if config.include_im_dialogs and not config.dialog_ids:
+            report.skipped.append(
+                IngestionError(
+                    source="im:<no-dialog-ids>",
+                    reason="include_im_dialogs is enabled but dialog_ids is empty",
+                )
+            )
+
         if config.include_im_dialogs and config.dialog_ids:
             for dialog_id in config.dialog_ids:
                 try:
@@ -236,7 +244,7 @@ class BitrixTemplate(BaseIngestionTemplate):
         while True:
             params = {"start": start}
             payload = self._request_json(config, method, params)
-            items = payload.get(items_key) or []
+            items = self._deep_get(payload, items_key) or []
             if isinstance(items, dict):
                 items = list(items.values())
             if not items:
@@ -264,7 +272,20 @@ class BitrixTemplate(BaseIngestionTemplate):
         req.add_header("Content-Type", "application/json")
 
         with request.urlopen(req, timeout=30) as resp:
-            return json.loads(resp.read().decode("utf-8", errors="replace"))
+            payload = json.loads(
+                resp.read().decode(
+                    "utf-8",
+                    errors="replace",
+                )
+            )
+
+        if "error" in payload:
+            raise RuntimeError(
+                f"{payload['error']}: "
+                f"{payload.get('error_description', '')}"
+            )
+
+        return payload
 
     @staticmethod
     def _bitrix_source_url(
@@ -286,7 +307,7 @@ class BitrixTemplate(BaseIngestionTemplate):
         if kind == "activity":
             return f"{base}/crm/activity/?ID={entity_id}"
         if kind == "im":
-            return f"{base}/online/?IM_DIALOG={parse.quote(entity_id)}"
+            return f"{base}/online/?IM_DIALOG={parse.quote(entity_id, safe='')}"
         return base
 
     # -------------------- text builders --------------------
@@ -503,3 +524,21 @@ class BitrixTemplate(BaseIngestionTemplate):
             },
         )
         return list(payload.get("result") or [])
+
+    @staticmethod
+    def _deep_get(
+        payload: dict[str, Any],
+        path: str,
+    ) -> Any:
+        current = payload
+
+        for part in path.split("."):
+            if not isinstance(current, dict):
+                return None
+
+            current = current.get(part)
+
+            if current is None:
+                return None
+
+        return current
