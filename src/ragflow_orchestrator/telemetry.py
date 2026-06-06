@@ -7,7 +7,6 @@ import time
 from contextlib import contextmanager
 from typing import Any
 
-
 TRUE_VALUES = {"1", "true", "yes", "on"}
 
 
@@ -67,10 +66,10 @@ class RagTelemetry:
             from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import (
                 OTLPSpanExporter,
             )
-            from opentelemetry.sdk.metrics import MeterProvider
-            from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
             from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
             from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
+            from opentelemetry.sdk.metrics import MeterProvider
+            from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
             from opentelemetry.sdk.resources import Resource
             from opentelemetry.sdk.trace import TracerProvider
             from opentelemetry.sdk.trace.export import BatchSpanProcessor
@@ -79,6 +78,8 @@ class RagTelemetry:
             return
 
         endpoint = os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:4317")
+        grpc_endpoint = endpoint.replace("http://", "").replace("https://", "")
+        insecure = not endpoint.startswith("https://")
         namespace = os.getenv("OTEL_SERVICE_NAMESPACE", "prompt-stack")
         environment = os.getenv("OTEL_DEPLOYMENT_ENVIRONMENT", "dev")
         version = os.getenv("OTEL_SERVICE_VERSION", "unknown")
@@ -92,14 +93,26 @@ class RagTelemetry:
             }
         )
 
-        self._tracer_provider = TracerProvider(resource=resource)
-        self._tracer_provider.add_span_processor(BatchSpanProcessor(OTLPSpanExporter(endpoint=endpoint)))
-        trace.set_tracer_provider(self._tracer_provider)
+        current_tracer_provider = trace.get_tracer_provider()
+        if isinstance(current_tracer_provider, TracerProvider):
+            self._tracer_provider = current_tracer_provider
+        else:
+            self._tracer_provider = TracerProvider(resource=resource)
+            self._tracer_provider.add_span_processor(
+                BatchSpanProcessor(OTLPSpanExporter(endpoint=grpc_endpoint, insecure=insecure))
+            )
+            trace.set_tracer_provider(self._tracer_provider)
         self._tracer = trace.get_tracer("ragflow-orchestrator")
 
-        metric_reader = PeriodicExportingMetricReader(OTLPMetricExporter(endpoint=endpoint))
-        self._meter_provider = MeterProvider(resource=resource, metric_readers=[metric_reader])
-        metrics.set_meter_provider(self._meter_provider)
+        current_meter_provider = metrics.get_meter_provider()
+        if isinstance(current_meter_provider, MeterProvider):
+            self._meter_provider = current_meter_provider
+        else:
+            metric_reader = PeriodicExportingMetricReader(
+                OTLPMetricExporter(endpoint=grpc_endpoint, insecure=insecure)
+            )
+            self._meter_provider = MeterProvider(resource=resource, metric_readers=[metric_reader])
+            metrics.set_meter_provider(self._meter_provider)
         self._meter = metrics.get_meter("ragflow-orchestrator")
 
         self._ingest_calls = self._meter.create_counter("rag_ingest_requests_total")
@@ -112,9 +125,17 @@ class RagTelemetry:
         self._search_results = self._meter.create_histogram("rag_search_results_count")
         self._search_top_k = self._meter.create_histogram("rag_search_top_k")
 
-        self._log_provider = LoggerProvider(resource=resource)
-        self._log_provider.add_log_record_processor(BatchLogRecordProcessor(OTLPLogExporter(endpoint=endpoint)))
-        set_logger_provider(self._log_provider)
+        from opentelemetry._logs import get_logger_provider
+
+        current_log_provider = get_logger_provider()
+        if isinstance(current_log_provider, LoggerProvider):
+            self._log_provider = current_log_provider
+        else:
+            self._log_provider = LoggerProvider(resource=resource)
+            self._log_provider.add_log_record_processor(
+                BatchLogRecordProcessor(OTLPLogExporter(endpoint=grpc_endpoint, insecure=insecure))
+            )
+            set_logger_provider(self._log_provider)
 
         self._otlp_logger = logging.getLogger("ragflow-orchestrator.otel")
         self._otlp_logger.setLevel(logging.INFO)
