@@ -11,7 +11,8 @@ services:
       - signoz
 
   signoz:
-    image: signoz/signoz-standalone:0.69.0
+    image: signoz/signoz-standalone:latest
+    privileged: true
     ports:
       - "8080:8080"
       - "3301:3301"
