@@ -232,12 +232,57 @@ If you plan to use provider-specific backends, install extras:
 ```bash
 pip install "ragflow_orchestrator[qdrant]"
 pip install "ragflow_orchestrator[pgvector]"
+pip install "ragflow_orchestrator[otel]"
 ```
 
 What each extra installs:
 
 - `qdrant`: `qdrant-client>=1.9`
 - `pgvector`: `sqlalchemy>=2.0`, `psycopg[binary]>=3.1`, `pgvector>=0.3`
+- `otel`: `opentelemetry-api`, `opentelemetry-sdk`, `opentelemetry-exporter-otlp`
+
+## Optional OpenTelemetry + SigNoz
+
+OpenTelemetry is optional. By default, RagflowOrchestrator works without any telemetry dependencies.
+
+Enable OTel from environment:
+
+```bash
+ENABLE_OTEL=true
+OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317
+OTEL_SERVICE_NAME=ragflow-orchestrator
+OTEL_SERVICE_NAMESPACE=prompt-stack
+OTEL_DEPLOYMENT_ENVIRONMENT=dev
+```
+
+Bring up OTel Collector + SigNoz (2 additional containers):
+
+```bash
+docker compose -f docker-compose.otel.yml up -d
+```
+
+Files used:
+
+- `docker-compose.otel.yml`
+- `observability/otel-collector-config.yaml`
+
+Default endpoints:
+
+- SigNoz UI: `http://localhost:8080`
+- OTLP gRPC ingest: `http://localhost:4317`
+- OTLP HTTP ingest: `http://localhost:4318`
+
+Exposed telemetry (when enabled):
+
+- traces: `rag.ingest`, `rag.search`, `rag.delete`
+- metrics: request count, error count, operation latency, ingested chunk count, skipped duplicates, retrieval result count/top-k
+- logs: error events exported through OTLP logs pipeline
+
+Dashboard template blueprint:
+
+- `observability/signoz-dashboard-ragflow.yaml`
+
+Use it as a panel/query blueprint when creating or importing a custom dashboard in SigNoz. The file contains ready PromQL queries for throughput, latency, duplicates, retrieval result counts, logs, and traces.
 
 ### Local preflight before release
 
@@ -409,6 +454,7 @@ Ready-to-run templates are available to minimize user input:
 - `ConfluenceWikiTemplate`: ingest Confluence pages by space keys or explicit page ids.
 - `JiraTemplate`: ingest Jira issues by JQL (with comments support).
 - `APIReferenceTemplate`: ingest OpenAPI/Swagger specs from file or URL.
+- `BitrixTemplate`: ingest Bitrix24 CRM entities (contacts, companies, deals, leads, tasks, activities, optional IM dialogs).
 - `PyPITemplate`: ingest PyPI package metadata, release history, and project URLs.
 - `GitHubTemplate`: ingest public GitHub repositories by owner, enrich with contributors and README, and persist repository graph.
 - `GitLabTemplate`: ingest public GitLab repositories/groups, enrich with contributors and README, and persist repository graph.
@@ -535,7 +581,7 @@ Runtime reporting:
 
 Switch scenario by changing only:
 
-- `active_scenario`: `web_crawl` | `document_folder` | `confluence_wiki` | `jira` | `api_reference` | `pypi` | `github` | `gitlab` | `repo_code` | `email_ticket` | `incremental_sync`
+- `active_scenario`: `web_crawl` | `document_folder` | `confluence_wiki` | `jira` | `api_reference` | `bitrix` | `pypi` | `github` | `gitlab` | `repo_code` | `email_ticket` | `incremental_sync`
 
 Minimal structure:
 
@@ -585,6 +631,19 @@ Minimal structure:
             "sources": ["openapi.json"],
             "include_operations": true,
             "include_schemas": true,
+            "language_mode": "auto"
+        },
+        "bitrix": {
+            "domain": "your-company.bitrix24.ru",
+            "user_id": 1,
+            "token": "BITRIX_WEBHOOK_TOKEN",
+            "include_contacts": true,
+            "include_companies": true,
+            "include_deals": true,
+            "include_leads": true,
+            "include_tasks": true,
+            "include_activities": true,
+            "include_im_dialogs": false,
             "language_mode": "auto"
         },
         "pypi": {

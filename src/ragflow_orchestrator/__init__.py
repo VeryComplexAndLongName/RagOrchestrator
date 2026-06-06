@@ -18,9 +18,12 @@ from ragflow_orchestrator.presets import code_preset, document_preset, markdown_
 from ragflow_orchestrator.query_engine import AnswerGenerator, QueryAnswer, RAGQueryEngine
 from ragflow_orchestrator.rag import PromptStyleRAGProviderAdapter, RAGProvider
 from ragflow_orchestrator.standards import METADATA_STANDARDS, validate_metadata
+from ragflow_orchestrator.telemetry import init_telemetry, shutdown_telemetry
 from ragflow_orchestrator.templates import (
     APIReferenceConfig,
     APIReferenceTemplate,
+    BitrixConfig,
+    BitrixTemplate,
     ConfluenceWikiConfig,
     ConfluenceWikiTemplate,
     DocumentFolderConfig,
@@ -84,6 +87,8 @@ __all__ = [
     "document_preset",
     "markdown_preset",
     "METADATA_STANDARDS",
+    "init_telemetry",
+    "shutdown_telemetry",
     "validate_metadata",
     "DatasetItem",
     "RerankProfileConfig",
@@ -101,6 +106,7 @@ __all__ = [
     "ConfluenceWikiConfig",
     "JiraConfig",
     "APIReferenceConfig",
+    "BitrixConfig",
     "PyPIConfig",
     "GitHubConfig",
     "GitLabConfig",
@@ -113,6 +119,7 @@ __all__ = [
     "ConfluenceWikiTemplate",
     "JiraTemplate",
     "APIReferenceTemplate",
+    "BitrixTemplate",
     "PyPITemplate",
     "GitHubTemplate",
     "GitLabTemplate",
