@@ -13,6 +13,9 @@ from ragflow_orchestrator.templates.models import (
 
 
 class BitrixTemplate(BaseIngestionTemplate):
+    template_name = "bitrix"
+    description = "Ingests CRM entities and optional IM dialogs from Bitrix24 via webhook API."
+
     """
     Ingestion-template for Bitrix24 via webhook API.
 

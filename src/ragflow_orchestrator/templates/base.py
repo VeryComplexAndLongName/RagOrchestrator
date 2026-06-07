@@ -6,6 +6,9 @@ from ragflow_orchestrator.templates.utils import detect_language
 
 
 class BaseIngestionTemplate:
+    template_name: str = "base"
+    description: str = "Base class for ingestion templates."
+
     def __init__(self, orchestrator: RAGOrchestrator) -> None:
         self.orchestrator = orchestrator
 

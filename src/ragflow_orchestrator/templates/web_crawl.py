@@ -9,6 +9,9 @@ from ragflow_orchestrator.templates.utils import extract_links, extract_text_fro
 
 
 class WebCrawlTemplate(BaseIngestionTemplate):
+    template_name = "web_crawl"
+    description = "Ingests website pages by crawling seed URLs with depth and domain controls."
+
     def run(self, config: WebCrawlConfig) -> TemplateRunReport:
         report = TemplateRunReport()
         queue: deque[tuple[str, int, str]] = deque()

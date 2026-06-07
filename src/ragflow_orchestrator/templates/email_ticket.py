@@ -11,6 +11,9 @@ from ragflow_orchestrator.templates.models import EmailTicketConfig, IngestionEr
 
 
 class EmailTicketTemplate(BaseIngestionTemplate):
+    template_name = "email_ticket"
+    description = "Ingests ticket-like data from email and tabular/message export files."
+
     def run(self, config: EmailTicketConfig) -> TemplateRunReport:
         report = TemplateRunReport()
         ext_set = {item.lower() for item in config.extensions}

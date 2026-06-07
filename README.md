@@ -502,6 +502,42 @@ Ready-to-run templates are available to minimize user input:
 - `EmailTicketTemplate`: ingest support tickets from `.eml`, `.jsonl`, `.csv`, `.txt`, `.md`.
 - `IncrementalSyncTemplate`: ingest only changed files using a sync state file.
 
+List installed templates programmatically:
+
+```python
+from ragflow_orchestrator import list_installed_templates
+
+for item in list_installed_templates():
+    print(f"{item['name']}: {item['description']}")
+```
+
+Return format:
+
+```python
+[
+    {"name": "document_folder", "description": "Ingests local documents from configured folders by extension filters."},
+    {"name": "web_crawl", "description": "Ingests website pages by crawling seed URLs with depth and domain controls."},
+    # ... only templates that are importable in the current environment
+]
+```
+
+Template name to class mapping:
+
+| Template name | Class name |
+| --- | --- |
+| `api_reference` | `APIReferenceTemplate` |
+| `bitrix` | `BitrixTemplate` |
+| `confluence_wiki` | `ConfluenceWikiTemplate` |
+| `document_folder` | `DocumentFolderTemplate` |
+| `email_ticket` | `EmailTicketTemplate` |
+| `github` | `GitHubTemplate` |
+| `gitlab` | `GitLabTemplate` |
+| `incremental_sync` | `IncrementalSyncTemplate` |
+| `jira` | `JiraTemplate` |
+| `pypi` | `PyPITemplate` |
+| `repo_code` | `RepoCodeTemplate` |
+| `web_crawl` | `WebCrawlTemplate` |
+
 Demo runners (one script per template):
 
 - `scripts/webcrawl_demo/run.py` -> `WebCrawlTemplate`
