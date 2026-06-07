@@ -7,6 +7,9 @@ from ragflow_orchestrator.templates.models import IngestionError, RepoCodeConfig
 
 
 class RepoCodeTemplate(BaseIngestionTemplate):
+    template_name = "repo_code"
+    description = "Ingests source code files from local repositories with extension filtering."
+
     def run(self, config: RepoCodeConfig) -> TemplateRunReport:
         report = TemplateRunReport()
         ext_set = {item.lower() for item in config.extensions}

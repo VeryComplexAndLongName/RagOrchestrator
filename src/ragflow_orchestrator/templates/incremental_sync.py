@@ -10,6 +10,9 @@ from ragflow_orchestrator.templates.utils import extract_text_from_html
 
 
 class IncrementalSyncTemplate(BaseIngestionTemplate):
+    template_name = "incremental_sync"
+    description = "Ingests only changed files from folders using persisted file fingerprints."
+
     def run(self, config: IncrementalSyncConfig) -> TemplateRunReport:
         report = TemplateRunReport()
         ext_set = {item.lower() for item in config.extensions}

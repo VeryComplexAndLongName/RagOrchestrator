@@ -1,5 +1,6 @@
 from ragflow_orchestrator.templates.api_reference import APIReferenceTemplate
 from ragflow_orchestrator.templates.bitrix import BitrixTemplate
+from ragflow_orchestrator.templates.catalog import list_installed_templates
 from ragflow_orchestrator.templates.confluence_wiki import ConfluenceWikiTemplate
 from ragflow_orchestrator.templates.document_folder import DocumentFolderTemplate
 from ragflow_orchestrator.templates.email_ticket import EmailTicketTemplate
@@ -69,5 +70,6 @@ __all__ = [
     "RepoCodeTemplate",
     "EmailTicketTemplate",
     "IncrementalSyncTemplate",
+    "list_installed_templates",
     "run_template_from_json",
 ]

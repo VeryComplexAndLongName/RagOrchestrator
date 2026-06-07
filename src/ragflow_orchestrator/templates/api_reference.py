@@ -9,6 +9,9 @@ from ragflow_orchestrator.templates.models import APIReferenceConfig, IngestionE
 
 
 class APIReferenceTemplate(BaseIngestionTemplate):
+    template_name = "api_reference"
+    description = "Ingests OpenAPI/Swagger API specifications from local files or URLs."
+
     def run(self, config: APIReferenceConfig) -> TemplateRunReport:
         report = TemplateRunReport()
 

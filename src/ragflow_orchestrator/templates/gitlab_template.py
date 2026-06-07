@@ -10,6 +10,9 @@ from ragflow_orchestrator.templates.models import GitLabConfig, IngestionError, 
 
 
 class GitLabTemplate(BaseIngestionTemplate):
+    template_name = "gitlab"
+    description = "Ingests GitLab projects, README data, and optional contributor graph metadata."
+
     def __init__(self, orchestrator, graph_store: SqlGraphStore | None = None) -> None:
         super().__init__(orchestrator)
         self.graph_store = graph_store or SqlGraphStore()

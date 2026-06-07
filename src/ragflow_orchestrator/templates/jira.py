@@ -9,6 +9,9 @@ from ragflow_orchestrator.templates.models import IngestionError, JiraConfig, Te
 
 
 class JiraTemplate(BaseIngestionTemplate):
+    template_name = "jira"
+    description = "Ingests Jira issues with optional comments based on JQL queries."
+
     def run(self, config: JiraConfig) -> TemplateRunReport:
         report = TemplateRunReport()
         issues = self._search_issues(config)

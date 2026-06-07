@@ -10,6 +10,9 @@ from ragflow_orchestrator.templates.utils import extract_text_from_html
 
 
 class ConfluenceWikiTemplate(BaseIngestionTemplate):
+    template_name = "confluence_wiki"
+    description = "Ingests Confluence pages by space key or explicit page IDs via REST API."
+
     def run(self, config: ConfluenceWikiConfig) -> TemplateRunReport:
         report = TemplateRunReport()
 

@@ -51,6 +51,7 @@ from ragflow_orchestrator.templates import (
     TemplatesConfig,
     WebCrawlConfig,
     WebCrawlTemplate,
+    list_installed_templates,
     run_template_from_json,
 )
 
@@ -126,5 +127,6 @@ __all__ = [
     "RepoCodeTemplate",
     "EmailTicketTemplate",
     "IncrementalSyncTemplate",
+    "list_installed_templates",
     "run_template_from_json",
 ]

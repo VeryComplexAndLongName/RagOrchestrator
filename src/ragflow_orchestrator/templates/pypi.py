@@ -21,6 +21,9 @@ def _markdown_to_plain_text(value: str) -> str:
 
 
 class PyPITemplate(BaseIngestionTemplate):
+    template_name = "pypi"
+    description = "Ingests package metadata, descriptions, and release facts from PyPI."
+
     def run(self, config: PyPIConfig) -> TemplateRunReport:
         report = TemplateRunReport()
 
