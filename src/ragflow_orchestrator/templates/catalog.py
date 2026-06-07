@@ -45,3 +45,27 @@ def list_installed_templates() -> list[dict[str, str]]:
         items.append({"name": name, "description": description})
 
     return sorted(items, key=lambda item: item["name"])
+
+
+def resolve_template_class(name: str) -> type[BaseIngestionTemplate]:
+    """Return the template class registered for a scenario name."""
+
+    for fallback_name, module_path, class_name in _TEMPLATE_IMPORTS:
+        try:
+            module = import_module(module_path)
+        except Exception as exc:
+            if name == fallback_name:
+                raise ValueError(f"Template '{name}' is registered but could not be imported") from exc
+            continue
+
+        template_cls = getattr(module, class_name, None)
+        if not isinstance(template_cls, type) or not issubclass(template_cls, BaseIngestionTemplate):
+            if name == fallback_name:
+                raise ValueError(f"Template '{name}' is registered but its class is missing")
+            continue
+
+        registered_name = str(getattr(template_cls, "template_name", fallback_name) or fallback_name)
+        if name in {fallback_name, registered_name}:
+            return template_cls
+
+    raise ValueError(f"Unknown scenario: {name}")
