@@ -1,0 +1,47 @@
+dashboard:
+  title: RagflowOrchestrator Overview
+  description: SigNoz dashboard blueprint for RagflowOrchestrator metrics exported through OpenTelemetry.
+  variables:
+    - name: env
+      description: deployment.environment resource attribute
+      default: dev
+    - name: service
+      description: service.name resource attribute
+      default: ragflow-orchestrator
+  panels:
+    - title: Ingest Requests
+      type: time_series
+      unit: req/s
+      query: sum(rate(rag_ingest_requests_total{service_name="$service",deployment_environment="$env"}[5m]))
+    - title: Search Requests
+      type: time_series
+      unit: req/s
+      query: sum(rate(rag_search_requests_total{service_name="$service",deployment_environment="$env"}[5m]))
+    - title: Error Rate
+      type: time_series
+      unit: err/s
+      query: sum(rate(rag_errors_total{service_name="$service",deployment_environment="$env"}[5m])) by (operation)
+    - title: Operation Latency P95
+      type: time_series
+      unit: ms
+      query: histogram_quantile(0.95, sum(rate(rag_operation_latency_ms_bucket{service_name="$service",deployment_environment="$env"}[5m])) by (le, operation))
+    - title: Chunks Ingested
+      type: time_series
+      unit: chunks/s
+      query: sum(rate(rag_chunks_ingested_total{service_name="$service",deployment_environment="$env"}[5m]))
+    - title: Duplicate Chunks Skipped
+      type: time_series
+      unit: chunks/s
+      query: sum(rate(rag_duplicates_skipped_total{service_name="$service",deployment_environment="$env"}[5m]))
+    - title: Retrieval Result Count P50
+      type: time_series
+      unit: hits
+      query: histogram_quantile(0.50, sum(rate(rag_search_results_count_bucket{service_name="$service",deployment_environment="$env"}[5m])) by (le))
+    - title: Retrieval Top-K Requested
+      type: histogram
+      unit: count
+      query: sum(rate(rag_search_top_k_bucket{service_name="$service",deployment_environment="$env"}[5m])) by (le)
+  logs:
+    default_query: service.name = "$service" AND deployment.environment = "$env"
+  traces:
+    span_filter: service.name = "$service" and name in ("rag.ingest", "rag.search", "rag.delete")

@@ -82,6 +82,19 @@
       "include_schemas": true,
       "language_mode": "auto"
     },
+    "bitrix": {
+      "domain": "your-company.bitrix24.ru",
+      "user_id": 1,
+      "token": "BITRIX_WEBHOOK_TOKEN",
+      "include_contacts": true,
+      "include_companies": true,
+      "include_deals": true,
+      "include_leads": true,
+      "include_tasks": true,
+      "include_activities": true,
+      "include_im_dialogs": false,
+      "language_mode": "auto"
+    },
     "pypi": {
       "packages": [
         "fastapi",

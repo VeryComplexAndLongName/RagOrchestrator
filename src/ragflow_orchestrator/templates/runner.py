@@ -11,6 +11,7 @@ from ragflow_orchestrator.orchestrator import RAGOrchestrator
 from ragflow_orchestrator.orchestrator_factory import RAGOrchestratorFactory
 from ragflow_orchestrator.retrieval import CosineReranker, HybridRetriever, RerankedRetriever, SemanticRetriever
 from ragflow_orchestrator.templates.api_reference import APIReferenceTemplate
+from ragflow_orchestrator.templates.bitrix import BitrixTemplate
 from ragflow_orchestrator.templates.confluence_wiki import ConfluenceWikiTemplate
 from ragflow_orchestrator.templates.document_folder import DocumentFolderTemplate
 from ragflow_orchestrator.templates.email_ticket import EmailTicketTemplate
@@ -21,6 +22,7 @@ from ragflow_orchestrator.templates.incremental_sync import IncrementalSyncTempl
 from ragflow_orchestrator.templates.jira import JiraTemplate
 from ragflow_orchestrator.templates.models import (
     APIReferenceConfig,
+    BitrixConfig,
     ConfluenceWikiConfig,
     DocumentFolderConfig,
     EmailTicketConfig,
@@ -105,6 +107,8 @@ def run_template_from_json(config_path: str) -> object:
         report = JiraTemplate(orchestrator).run(JiraConfig.model_validate(scenario_payload))
     elif scenario_name == "api_reference":
         report = APIReferenceTemplate(orchestrator).run(APIReferenceConfig.model_validate(scenario_payload))
+    elif scenario_name == "bitrix":
+        report = BitrixTemplate(orchestrator).run(BitrixConfig.model_validate(scenario_payload))
     elif scenario_name == "pypi":
         report = PyPITemplate(orchestrator).run(PyPIConfig.model_validate(scenario_payload))
     elif scenario_name == "github":

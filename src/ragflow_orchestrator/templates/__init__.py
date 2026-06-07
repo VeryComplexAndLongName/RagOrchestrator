@@ -1,4 +1,5 @@
 from ragflow_orchestrator.templates.api_reference import APIReferenceTemplate
+from ragflow_orchestrator.templates.bitrix import BitrixTemplate
 from ragflow_orchestrator.templates.confluence_wiki import ConfluenceWikiTemplate
 from ragflow_orchestrator.templates.document_folder import DocumentFolderTemplate
 from ragflow_orchestrator.templates.email_ticket import EmailTicketTemplate
@@ -8,6 +9,7 @@ from ragflow_orchestrator.templates.incremental_sync import IncrementalSyncTempl
 from ragflow_orchestrator.templates.jira import JiraTemplate
 from ragflow_orchestrator.templates.models import (
     APIReferenceConfig,
+    BitrixConfig,
     ConfluenceWikiConfig,
     DocumentFolderConfig,
     EmailTicketConfig,
@@ -47,6 +49,7 @@ __all__ = [
     "ConfluenceWikiConfig",
     "JiraConfig",
     "APIReferenceConfig",
+    "BitrixConfig",
     "PyPIConfig",
     "GitHubConfig",
     "GitLabConfig",
@@ -59,6 +62,7 @@ __all__ = [
     "ConfluenceWikiTemplate",
     "JiraTemplate",
     "APIReferenceTemplate",
+    "BitrixTemplate",
     "PyPITemplate",
     "GitHubTemplate",
     "GitLabTemplate",

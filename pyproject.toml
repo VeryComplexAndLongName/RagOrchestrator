@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ragflow_orchestrator"
-version = "0.1.7"
+version = "0.1.9"
 description = "Universal RAG orchestration layer with pluggable vector DB adapters"
 readme = { file = "README.md", content-type = "text/markdown" }
 requires-python = ">=3.11"
@@ -39,6 +39,11 @@ Issues = "https://github.com/VeryComplexAndLongName/RagOrchestrator/issues"
 qdrant = ["qdrant-client>=1.9"]
 pgvector = ["sqlalchemy>=2.0", "psycopg[binary]>=3.1", "pgvector>=0.3"]
 hf = ["sentence-transformers>=3.0"]
+otel = [
+  "opentelemetry-api>=1.27.0",
+  "opentelemetry-sdk>=1.27.0",
+  "opentelemetry-exporter-otlp>=1.27.0",
+]
 dev = [
   "pytest>=8.2",
   "ruff>=0.5.0",
@@ -51,6 +56,9 @@ all = [
   "psycopg[binary]>=3.1",
   "pgvector>=0.3",
   "sentence-transformers>=3.0",
+  "opentelemetry-api>=1.27.0",
+  "opentelemetry-sdk>=1.27.0",
+  "opentelemetry-exporter-otlp>=1.27.0",
 ]
 
 [tool.setuptools]

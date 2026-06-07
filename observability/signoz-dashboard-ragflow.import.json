@@ -1,0 +1,86 @@
+{
+  "title": "RagflowOrchestrator Overview",
+  "description": "Importable dashboard for RagflowOrchestrator OTel metrics.",
+  "tags": ["signoz", "otel", "ragflow"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "panels": [
+    {
+      "title": "Ingest Requests",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum(rate(rag_ingest_requests_total{service_name=~\"$service\",deployment_environment=~\"$env\"}[5m]))",
+          "legendFormat": "ingest req/s"
+        }
+      ]
+    },
+    {
+      "title": "Search Requests",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum(rate(rag_search_requests_total{service_name=~\"$service\",deployment_environment=~\"$env\"}[5m]))",
+          "legendFormat": "search req/s"
+        }
+      ]
+    },
+    {
+      "title": "Errors by Operation",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum(rate(rag_errors_total{service_name=~\"$service\",deployment_environment=~\"$env\"}[5m])) by (operation)",
+          "legendFormat": "{{operation}}"
+        }
+      ]
+    },
+    {
+      "title": "Operation Latency P95",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(rag_operation_latency_ms_bucket{service_name=~\"$service\",deployment_environment=~\"$env\"}[5m])) by (le, operation))",
+          "legendFormat": "{{operation}} p95"
+        }
+      ]
+    },
+    {
+      "title": "Chunks Ingested",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum(rate(rag_chunks_ingested_total{service_name=~\"$service\",deployment_environment=~\"$env\"}[5m]))",
+          "legendFormat": "chunks/s"
+        }
+      ]
+    },
+    {
+      "title": "Duplicates Skipped",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum(rate(rag_duplicates_skipped_total{service_name=~\"$service\",deployment_environment=~\"$env\"}[5m]))",
+          "legendFormat": "duplicates/s"
+        }
+      ]
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "env",
+        "type": "custom",
+        "query": "dev,stage,prod",
+        "current": { "text": "dev", "value": "dev" }
+      },
+      {
+        "name": "service",
+        "type": "custom",
+        "query": "ragflow-orchestrator",
+        "current": { "text": "ragflow-orchestrator", "value": "ragflow-orchestrator" }
+      }
+    ]
+  }
+}

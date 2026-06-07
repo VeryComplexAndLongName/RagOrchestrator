@@ -232,12 +232,97 @@ If you plan to use provider-specific backends, install extras:
 ```bash
 pip install "ragflow_orchestrator[qdrant]"
 pip install "ragflow_orchestrator[pgvector]"
+pip install "ragflow_orchestrator[otel]"
 ```
 
 What each extra installs:
 
 - `qdrant`: `qdrant-client>=1.9`
 - `pgvector`: `sqlalchemy>=2.0`, `psycopg[binary]>=3.1`, `pgvector>=0.3`
+- `otel`: `opentelemetry-api`, `opentelemetry-sdk`, `opentelemetry-exporter-otlp`
+
+## Optional OpenTelemetry + SigNoz
+
+OpenTelemetry is optional. By default, RagflowOrchestrator works without any telemetry dependencies.
+RagflowOrchestrator also works when OpenTelemetry packages are not installed at all (no `opentelemetry-*` modules in the environment).
+
+SigNoz is expected to run separately (for example, official SigNoz Docker deployment on `http://localhost:8080`).
+
+Enable OTel (host runtime):
+
+```bash
+ENABLE_OTEL=true
+OTEL_EXPORTER_OTLP_ENDPOINT=localhost:4317
+OTEL_SERVICE_NAME=ragflow-orchestrator
+OTEL_SERVICE_NAMESPACE=prompt-stack
+OTEL_DEPLOYMENT_ENVIRONMENT=dev
+```
+
+Run local OTel Collector (1 additional container):
+
+```bash
+docker compose -f docker-compose.otel.yml up -d
+```
+
+Disable OTel (host runtime):
+
+```bash
+ENABLE_OTEL=false
+```
+
+Stop local OTel Collector:
+
+```bash
+docker compose -f docker-compose.otel.yml down
+```
+
+Files used:
+
+- `docker-compose.otel.yml`
+- `observability/otel-collector-config.yaml`
+
+Default endpoints:
+
+- SigNoz UI (external): `http://localhost:8080`
+- OTLP gRPC ingest (local collector): `http://localhost:4317`
+- OTLP HTTP ingest (local collector): `http://localhost:4318`
+
+Exposed telemetry (when enabled):
+
+Metrics
+
+| Name | Description |
+| --- | --- |
+| `rag_ingest_requests_total` | Counter of ingest operations. Attribute `status` is `ok` or `error`. |
+| `rag_search_requests_total` | Counter of search operations. Attribute `status` is `ok` or `error`. |
+| `rag_delete_requests_total` | Counter of delete operations. On successful delete, increments by number of requested chunk IDs. |
+| `rag_errors_total` | Counter of operation errors. Attributes include `operation` and `error.type`. |
+| `rag_operation_latency_ms` | Histogram of operation latency in milliseconds for ingest/search/delete. |
+| `rag_chunks_ingested_total` | Counter of chunks accepted for upsert during ingest. |
+| `rag_duplicates_skipped_total` | Counter of chunks skipped by deduplication during ingest. |
+| `rag_search_results_count` | Histogram of retrieved result count per search request. |
+| `rag_search_top_k` | Histogram of requested top-k per search request. |
+
+Traces
+
+| Span Name | Description |
+| --- | --- |
+| `rag.ingest` | Span around full ingest pipeline (`clean -> chunk -> embed -> upsert`). Adds attribute `source.id`. |
+| `rag.search` | Span around retrieval request execution. Adds attribute `retrieval.top_k`. |
+| `rag.delete` | Span around delete execution. Adds attributes `chunks.count` and `soft_delete`. |
+
+Logs
+
+| Event / Logger | Description |
+| --- | --- |
+| `rag.error operation=<op> error_type=<type>` | Error log message emitted on ingest/search/delete exceptions and exported through OTLP logs pipeline. |
+| `ragflow-orchestrator.otel` | Logger name used for OTLP log export (`ERROR` level for current error events). |
+
+Dashboard template blueprint:
+
+- `observability/signoz-dashboard-ragflow.yaml`
+
+Use it as a panel/query blueprint when creating or importing a custom dashboard in SigNoz. The file contains ready PromQL queries for throughput, latency, duplicates, retrieval result counts, logs, and traces.
 
 ### Local preflight before release
 
@@ -409,6 +494,7 @@ Ready-to-run templates are available to minimize user input:
 - `ConfluenceWikiTemplate`: ingest Confluence pages by space keys or explicit page ids.
 - `JiraTemplate`: ingest Jira issues by JQL (with comments support).
 - `APIReferenceTemplate`: ingest OpenAPI/Swagger specs from file or URL.
+- `BitrixTemplate`: ingest Bitrix24 CRM entities (contacts, companies, deals, leads, tasks, activities, optional IM dialogs).
 - `PyPITemplate`: ingest PyPI package metadata, release history, and project URLs.
 - `GitHubTemplate`: ingest public GitHub repositories by owner, enrich with contributors and README, and persist repository graph.
 - `GitLabTemplate`: ingest public GitLab repositories/groups, enrich with contributors and README, and persist repository graph.
@@ -535,7 +621,7 @@ Runtime reporting:
 
 Switch scenario by changing only:
 
-- `active_scenario`: `web_crawl` | `document_folder` | `confluence_wiki` | `jira` | `api_reference` | `pypi` | `github` | `gitlab` | `repo_code` | `email_ticket` | `incremental_sync`
+- `active_scenario`: `web_crawl` | `document_folder` | `confluence_wiki` | `jira` | `api_reference` | `bitrix` | `pypi` | `github` | `gitlab` | `repo_code` | `email_ticket` | `incremental_sync`
 
 Minimal structure:
 
@@ -585,6 +671,19 @@ Minimal structure:
             "sources": ["openapi.json"],
             "include_operations": true,
             "include_schemas": true,
+            "language_mode": "auto"
+        },
+        "bitrix": {
+            "domain": "your-company.bitrix24.ru",
+            "user_id": 1,
+            "token": "BITRIX_WEBHOOK_TOKEN",
+            "include_contacts": true,
+            "include_companies": true,
+            "include_deals": true,
+            "include_leads": true,
+            "include_tasks": true,
+            "include_activities": true,
+            "include_im_dialogs": false,
             "language_mode": "auto"
         },
         "pypi": {
