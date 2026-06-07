@@ -9,6 +9,8 @@ from ragflow_orchestrator.orchestrator import IngestSummary
 
 
 class LanguageMode(str, Enum):
+    """Language tagging strategy applied to ingested content."""
+
     AUTO = "auto"
     FORCE_RU = "force_ru"
     FORCE_EN = "force_en"
@@ -16,63 +18,90 @@ class LanguageMode(str, Enum):
 
 
 class IngestionError(BaseModel):
-    source: str
-    reason: str
+    source: str = Field(description="Identifier or path of the source item that failed or was skipped.")
+    reason: str = Field(description="Human-readable explanation of the failure or skip reason.")
 
 
 class TemplateRunMetrics(BaseModel):
-    total_duration_ms: float = 0.0
-    total_chunks: int = 0
-    duplicate_chunks_skipped: int = 0
-    chunks_per_second: float = 0.0
+    total_duration_ms: float = Field(default=0.0, description="Total wall-clock duration of the template run in milliseconds.")
+    total_chunks: int = Field(default=0, description="Number of chunks successfully ingested across all sources.")
+    duplicate_chunks_skipped: int = Field(default=0, description="Number of chunks skipped because they were already present.")
+    chunks_per_second: float = Field(default=0.0, description="Ingestion throughput calculated as total_chunks divided by duration.")
 
 
 class TemplateQualityMetric(BaseModel):
-    strategy_name: str
-    precision_at_k: float
-    recall_at_k: float
-    mrr: float
-    ndcg_at_k: float
+    strategy_name: str = Field(description="Name of the retrieval or ranking strategy being evaluated.")
+    precision_at_k: float = Field(description="Precision@K score from the evaluation dataset.")
+    recall_at_k: float = Field(description="Recall@K score from the evaluation dataset.")
+    mrr: float = Field(description="Mean reciprocal rank of the first relevant result.")
+    ndcg_at_k: float = Field(description="Normalized discounted cumulative gain at K.")
 
 
 class TemplateRunReport(BaseModel):
-    ingested: list[IngestSummary] = Field(default_factory=list)
-    skipped: list[IngestionError] = Field(default_factory=list)
-    failed: list[IngestionError] = Field(default_factory=list)
-    run_metrics: TemplateRunMetrics | None = None
-    quality: list[TemplateQualityMetric] = Field(default_factory=list)
+    ingested: list[IngestSummary] = Field(
+        default_factory=list,
+        description="Summaries of sources that were successfully ingested.",
+    )
+    skipped: list[IngestionError] = Field(
+        default_factory=list,
+        description="Sources that were skipped without raising an exception.",
+    )
+    failed: list[IngestionError] = Field(
+        default_factory=list,
+        description="Sources that failed during ingestion with an error.",
+    )
+    run_metrics: TemplateRunMetrics | None = Field(
+        default=None,
+        description="Optional runtime performance metrics for the template run.",
+    )
+    quality: list[TemplateQualityMetric] = Field(
+        default_factory=list,
+        description="Optional retrieval quality metrics computed after ingestion.",
+    )
 
 
 class TemplateEvaluationConfig(BaseModel):
-    enabled: bool = False
-    dataset_path: str = "datasets/retrieval_eval.jsonl"
-    top_k: int = 3
+    enabled: bool = Field(default=False, description="Whether to run post-ingestion retrieval evaluation.")
+    dataset_path: str = Field(
+        default="datasets/retrieval_eval.jsonl",
+        description="Path to the JSONL file with labeled queries and expected chunks.",
+    )
+    top_k: int = Field(default=3, description="Number of top results to consider when computing quality metrics.")
 
 
 class TemplateExperimentLogConfig(BaseModel):
-    enabled: bool = True
-    db_path: str = "loadtest/experiments.sqlite"
+    enabled: bool = Field(default=True, description="Whether to persist template run results to the experiment journal.")
+    db_path: str = Field(default="loadtest/experiments.sqlite", description="SQLite database path for experiment logging.")
 
 
 class WebCrawlConfig(BaseModel):
-    urls: list[str]
-    max_depth: int = 1
-    same_domain_only: bool = True
-    max_pages: int = 200
-    language_mode: LanguageMode = LanguageMode.AUTO
+    urls: list[str] = Field(description="Seed URLs to start crawling from.")
+    max_depth: int = Field(default=1, description="Maximum link depth to follow from each seed URL.")
+    same_domain_only: bool = Field(default=True, description="Restrict crawling to the same domain as the seed URL.")
+    max_pages: int = Field(default=200, description="Maximum number of pages to fetch across all seeds.")
+    language_mode: LanguageMode = Field(
+        default=LanguageMode.AUTO,
+        description="Language tagging strategy for crawled page content.",
+    )
 
 
 class DocumentFolderConfig(BaseModel):
-    folders: list[str]
-    recursive: bool = True
-    extensions: list[str] = Field(default_factory=lambda: [".docx", ".pdf", ".xlsx", ".txt", ".md", ".html"])
-    language_mode: LanguageMode = LanguageMode.AUTO
+    folders: list[str] = Field(description="Local folder paths to scan for documents.")
+    recursive: bool = Field(default=True, description="Whether to scan subdirectories recursively.")
+    extensions: list[str] = Field(
+        default_factory=lambda: [".docx", ".pdf", ".xlsx", ".txt", ".md", ".html"],
+        description="File extensions to include during folder scanning.",
+    )
+    language_mode: LanguageMode = Field(
+        default=LanguageMode.AUTO,
+        description="Language tagging strategy for extracted document text.",
+    )
 
 
 class RepoCodeConfig(BaseModel):
-    repos: list[str]
-    recursive: bool = True
-    include_hidden: bool = False
+    repos: list[str] = Field(description="Local repository root paths to scan for source files.")
+    recursive: bool = Field(default=True, description="Whether to scan repository subdirectories recursively.")
+    include_hidden: bool = Field(default=False, description="Whether to include hidden files and directories.")
     extensions: list[str] = Field(
         default_factory=lambda: [
             ".py",
@@ -86,124 +115,219 @@ class RepoCodeConfig(BaseModel):
             ".yaml",
             ".yml",
             ".json",
-        ]
+        ],
+        description="Source file extensions to ingest from repositories.",
     )
-    language_mode: LanguageMode = LanguageMode.AUTO
+    language_mode: LanguageMode = Field(
+        default=LanguageMode.AUTO,
+        description="Language tagging strategy for ingested source code and docs.",
+    )
 
 
 class EmailTicketConfig(BaseModel):
-    sources: list[str]
-    recursive: bool = True
-    extensions: list[str] = Field(default_factory=lambda: [".eml", ".jsonl", ".csv", ".txt", ".md"])
-    language_mode: LanguageMode = LanguageMode.AUTO
+    sources: list[str] = Field(description="File or folder paths containing support ticket exports.")
+    recursive: bool = Field(default=True, description="Whether to scan subdirectories when a source is a folder.")
+    extensions: list[str] = Field(
+        default_factory=lambda: [".eml", ".jsonl", ".csv", ".txt", ".md"],
+        description="Ticket file extensions to include during scanning.",
+    )
+    language_mode: LanguageMode = Field(
+        default=LanguageMode.AUTO,
+        description="Language tagging strategy for ticket message content.",
+    )
 
 
 class IncrementalSyncConfig(BaseModel):
-    folders: list[str]
-    recursive: bool = True
-    extensions: list[str] = Field(default_factory=lambda: [".docx", ".pdf", ".xlsx", ".txt", ".md", ".html"])
-    state_file: str = ".rag_incremental_state.json"
-    language_mode: LanguageMode = LanguageMode.AUTO
+    folders: list[str] = Field(description="Local folder paths monitored for new or changed files.")
+    recursive: bool = Field(default=True, description="Whether to monitor subdirectories recursively.")
+    extensions: list[str] = Field(
+        default_factory=lambda: [".docx", ".pdf", ".xlsx", ".txt", ".md", ".html"],
+        description="File extensions eligible for incremental ingestion.",
+    )
+    state_file: str = Field(
+        default=".rag_incremental_state.json",
+        description="Path to the JSON file storing last-seen file hashes and timestamps.",
+    )
+    language_mode: LanguageMode = Field(
+        default=LanguageMode.AUTO,
+        description="Language tagging strategy for newly synced content.",
+    )
 
 
 class ConfluenceWikiConfig(BaseModel):
-    base_url: str
-    page_ids: list[str] = Field(default_factory=list)
-    space_keys: list[str] = Field(default_factory=list)
-    max_pages: int = 200
-    auth_mode: str = "none"  # none | bearer | basic
-    username: str | None = None
-    password: str | None = None
-    token: str | None = None
-    language_mode: LanguageMode = LanguageMode.AUTO
+    base_url: str = Field(description="Base URL of the Confluence instance (e.g. https://wiki.example.com).")
+    page_ids: list[str] = Field(
+        default_factory=list,
+        description="Explicit Confluence page IDs to ingest.",
+    )
+    space_keys: list[str] = Field(
+        default_factory=list,
+        description="Confluence space keys whose pages should be ingested.",
+    )
+    max_pages: int = Field(default=200, description="Maximum number of pages to fetch per run.")
+    auth_mode: str = Field(
+        default="none",
+        description="Authentication mode: none, bearer, or basic.",
+    )
+    username: str | None = Field(default=None, description="Username for basic authentication.")
+    password: str | None = Field(default=None, description="Password for basic authentication.")
+    token: str | None = Field(default=None, description="Bearer or personal access token.")
+    language_mode: LanguageMode = Field(
+        default=LanguageMode.AUTO,
+        description="Language tagging strategy for Confluence page content.",
+    )
 
 
 class JiraConfig(BaseModel):
-    base_url: str
-    jql: str = "order by updated desc"
-    max_issues: int = 200
-    include_comments: bool = True
-    auth_mode: str = "none"  # none | bearer | basic
-    username: str | None = None
-    password: str | None = None
-    token: str | None = None
-    language_mode: LanguageMode = LanguageMode.AUTO
+    base_url: str = Field(description="Base URL of the Jira instance (e.g. https://jira.example.com).")
+    jql: str = Field(default="order by updated desc", description="JQL query used to select issues for ingestion.")
+    max_issues: int = Field(default=200, description="Maximum number of issues to fetch per run.")
+    include_comments: bool = Field(default=True, description="Whether to include issue comments in ingested text.")
+    auth_mode: str = Field(
+        default="none",
+        description="Authentication mode: none, bearer, or basic.",
+    )
+    username: str | None = Field(default=None, description="Username for basic authentication.")
+    password: str | None = Field(default=None, description="Password for basic authentication.")
+    token: str | None = Field(default=None, description="Bearer or personal access token.")
+    language_mode: LanguageMode = Field(
+        default=LanguageMode.AUTO,
+        description="Language tagging strategy for Jira issue content.",
+    )
 
 
 class APIReferenceConfig(BaseModel):
-    sources: list[str]
-    include_operations: bool = True
-    include_schemas: bool = True
-    language_mode: LanguageMode = LanguageMode.AUTO
+    sources: list[str] = Field(description="Local file paths or URLs pointing to OpenAPI/Swagger specifications.")
+    include_operations: bool = Field(default=True, description="Whether to ingest API path and operation descriptions.")
+    include_schemas: bool = Field(default=True, description="Whether to ingest component schema definitions.")
+    language_mode: LanguageMode = Field(
+        default=LanguageMode.AUTO,
+        description="Language tagging strategy for API reference text.",
+    )
 
 
 class PyPIConfig(BaseModel):
-    packages: list[str] = Field(default_factory=list)
-    include_release_history: bool = True
-    max_releases_per_package: int = 20
-    include_project_urls: bool = True
-    language_mode: LanguageMode = LanguageMode.AUTO
+    packages: list[str] = Field(
+        default_factory=list,
+        description="PyPI package names to ingest.",
+    )
+    include_release_history: bool = Field(default=True, description="Whether to include release version history.")
+    max_releases_per_package: int = Field(
+        default=20,
+        description="Maximum number of recent releases to include per package.",
+    )
+    include_project_urls: bool = Field(default=True, description="Whether to include project homepage and doc URLs.")
+    language_mode: LanguageMode = Field(
+        default=LanguageMode.AUTO,
+        description="Language tagging strategy for package metadata text.",
+    )
 
 
 class GitHubConfig(BaseModel):
-    owners: list[str] = Field(default_factory=list)
-    max_projects: int = 50
-    max_repos_per_owner: int = 20
-    include_readme: bool = True
-    include_contributors: bool = True
-    auth_mode: str = "none"  # none | bearer
-    token: str | None = None
-    language_mode: LanguageMode = LanguageMode.AUTO
+    owners: list[str] = Field(
+        default_factory=list,
+        description="GitHub usernames or organization names whose repositories should be ingested.",
+    )
+    max_projects: int = Field(default=50, description="Maximum total number of repositories to ingest per run.")
+    max_repos_per_owner: int = Field(default=20, description="Maximum repositories to fetch per owner.")
+    include_readme: bool = Field(default=True, description="Whether to fetch and include each repository README.")
+    include_contributors: bool = Field(
+        default=True,
+        description="Whether to fetch contributors and persist them in the repository graph.",
+    )
+    auth_mode: str = Field(default="none", description="Authentication mode: none or bearer.")
+    token: str | None = Field(default=None, description="GitHub personal access token for bearer authentication.")
+    language_mode: LanguageMode = Field(
+        default=LanguageMode.AUTO,
+        description="Language tagging strategy for repository content.",
+    )
 
 
 class GitLabConfig(BaseModel):
-    base_url: str = "https://gitlab.com"
-    groups_or_users: list[str] = Field(default_factory=list)
-    max_projects: int = 50
-    max_repos_per_owner: int = 20
-    include_readme: bool = True
-    include_contributors: bool = True
-    auth_mode: str = "none"  # none | bearer
-    token: str | None = None
-    language_mode: LanguageMode = LanguageMode.AUTO
+    base_url: str = Field(default="https://gitlab.com", description="Base URL of the GitLab instance.")
+    groups_or_users: list[str] = Field(
+        default_factory=list,
+        description="GitLab group paths or usernames whose projects should be ingested.",
+    )
+    max_projects: int = Field(default=50, description="Maximum total number of projects to ingest per run.")
+    max_repos_per_owner: int = Field(default=20, description="Maximum projects to fetch per group or user.")
+    include_readme: bool = Field(default=True, description="Whether to fetch and include each project README.")
+    include_contributors: bool = Field(
+        default=True,
+        description="Whether to fetch contributors and persist them in the repository graph.",
+    )
+    auth_mode: str = Field(default="none", description="Authentication mode: none or bearer.")
+    token: str | None = Field(default=None, description="GitLab personal access token for bearer authentication.")
+    language_mode: LanguageMode = Field(
+        default=LanguageMode.AUTO,
+        description="Language tagging strategy for project content.",
+    )
 
 
 class GraphStoreConfig(BaseModel):
-    db_path: str = ".rag_graph.sqlite"
+    db_path: str = Field(
+        default=".rag_graph.sqlite",
+        description="SQLite database path for the repository and contributor graph store.",
+    )
 
 
 class TemplatesConfig(BaseModel):
-    orchestrator: ModuleConfig = Field(default_factory=ModuleConfig)
-    graph_store: GraphStoreConfig = Field(default_factory=GraphStoreConfig)
-    evaluation: TemplateEvaluationConfig = Field(default_factory=TemplateEvaluationConfig)
-    experiment_log: TemplateExperimentLogConfig = Field(default_factory=TemplateExperimentLogConfig)
-    active_scenario: str = "document_folder"
-    scenarios: dict[str, dict] = Field(default_factory=dict)
+    orchestrator: ModuleConfig = Field(
+        default_factory=ModuleConfig,
+        description="RAG orchestrator provider, embedding, and pipeline configuration.",
+    )
+    graph_store: GraphStoreConfig = Field(
+        default_factory=GraphStoreConfig,
+        description="Configuration for the optional repository graph store.",
+    )
+    evaluation: TemplateEvaluationConfig = Field(
+        default_factory=TemplateEvaluationConfig,
+        description="Post-ingestion retrieval evaluation settings.",
+    )
+    experiment_log: TemplateExperimentLogConfig = Field(
+        default_factory=TemplateExperimentLogConfig,
+        description="Experiment journal persistence settings.",
+    )
+    active_scenario: str = Field(
+        default="document_folder",
+        description="Name of the scenario to run from the scenarios map.",
+    )
+    scenarios: dict[str, dict] = Field(
+        default_factory=dict,
+        description="Map of scenario names to their template-specific configuration objects.",
+    )
+
 
 class BitrixConfig(BaseModel):
-    domain: str                     # <domain>.bitrix24.ru
-    user_id: int = Field(ge=1)      # ID webhook user
-    token: SecretStr                # user token
+    domain: str = Field(description="Bitrix24 portal hostname without scheme (e.g. example.bitrix24.ru).")
+    user_id: int = Field(ge=1, description="Webhook user ID used in the REST URL path.")
+    token: SecretStr = Field(description="Inbound webhook user token.")
 
-    language_mode: LanguageMode = LanguageMode.AUTO
+    language_mode: LanguageMode = Field(
+        default=LanguageMode.AUTO,
+        description="Language tagging strategy for Bitrix24 entity content.",
+    )
 
-    include_contacts: bool = True
-    include_companies: bool = True
-    include_deals: bool = True
-    include_leads: bool = True
-    include_tasks: bool = True
-    include_activities: bool = True
-    include_im_dialogs: bool = False
+    include_contacts: bool = Field(default=True, description="Whether to ingest CRM contacts.")
+    include_companies: bool = Field(default=True, description="Whether to ingest CRM companies.")
+    include_deals: bool = Field(default=True, description="Whether to ingest CRM deals.")
+    include_leads: bool = Field(default=True, description="Whether to ingest CRM leads.")
+    include_tasks: bool = Field(default=True, description="Whether to ingest tasks.")
+    include_activities: bool = Field(default=True, description="Whether to ingest CRM activities.")
+    include_im_dialogs: bool = Field(default=False, description="Whether to ingest instant messaging dialog messages.")
 
-    max_contacts: int = Field(default=1000, ge=1)
-    max_companies: int = Field(default=1000, ge=1)
-    max_deals: int = Field(default=1000, ge=1)
-    max_leads: int = Field(default=1000, ge=1)
-    max_tasks: int = Field(default=1000, ge=1)
-    max_activities: int = Field(default=1000, ge=1)
-    max_dialog_messages: int = Field(default=200, ge=1)
+    max_contacts: int = Field(default=1000, ge=1, description="Maximum number of contacts to fetch.")
+    max_companies: int = Field(default=1000, ge=1, description="Maximum number of companies to fetch.")
+    max_deals: int = Field(default=1000, ge=1, description="Maximum number of deals to fetch.")
+    max_leads: int = Field(default=1000, ge=1, description="Maximum number of leads to fetch.")
+    max_tasks: int = Field(default=1000, ge=1, description="Maximum number of tasks to fetch.")
+    max_activities: int = Field(default=1000, ge=1, description="Maximum number of activities to fetch.")
+    max_dialog_messages: int = Field(default=200, ge=1, description="Maximum number of IM messages to fetch per dialog.")
 
-    dialog_ids: list[str] = Field(default_factory=list)
+    dialog_ids: list[str] = Field(
+        default_factory=list,
+        description="IM dialog IDs to ingest when include_im_dialogs is enabled.",
+    )
 
     @field_validator("domain")
     @classmethod
@@ -264,4 +388,3 @@ class BitrixConfig(BaseModel):
             f"https://{self.domain}"
             f"/rest/{self.user_id}/{self.token.get_secret_value()}"
         )
-    

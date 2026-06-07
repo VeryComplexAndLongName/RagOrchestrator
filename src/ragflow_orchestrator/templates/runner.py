@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import inspect
 import json
 import time
 from pathlib import Path
@@ -10,38 +11,16 @@ from ragflow_orchestrator.graph import SqlGraphStore
 from ragflow_orchestrator.orchestrator import RAGOrchestrator
 from ragflow_orchestrator.orchestrator_factory import RAGOrchestratorFactory
 from ragflow_orchestrator.retrieval import CosineReranker, HybridRetriever, RerankedRetriever, SemanticRetriever
-from ragflow_orchestrator.templates.api_reference import APIReferenceTemplate
-from ragflow_orchestrator.templates.bitrix import BitrixTemplate
-from ragflow_orchestrator.templates.confluence_wiki import ConfluenceWikiTemplate
-from ragflow_orchestrator.templates.document_folder import DocumentFolderTemplate
-from ragflow_orchestrator.templates.email_ticket import EmailTicketTemplate
+from ragflow_orchestrator.templates.base import BaseIngestionTemplate
+from ragflow_orchestrator.templates.catalog import resolve_template_class
 from ragflow_orchestrator.templates.experiment_journal import append_template_run
-from ragflow_orchestrator.templates.github_template import GitHubTemplate
-from ragflow_orchestrator.templates.gitlab_template import GitLabTemplate
-from ragflow_orchestrator.templates.incremental_sync import IncrementalSyncTemplate
-from ragflow_orchestrator.templates.jira import JiraTemplate
 from ragflow_orchestrator.templates.models import (
-    APIReferenceConfig,
-    BitrixConfig,
-    ConfluenceWikiConfig,
-    DocumentFolderConfig,
-    EmailTicketConfig,
-    GitHubConfig,
-    GitLabConfig,
-    IncrementalSyncConfig,
     IngestionError,
-    JiraConfig,
-    PyPIConfig,
-    RepoCodeConfig,
     TemplateQualityMetric,
     TemplateRunMetrics,
     TemplateRunReport,
     TemplatesConfig,
-    WebCrawlConfig,
 )
-from ragflow_orchestrator.templates.pypi import PyPITemplate
-from ragflow_orchestrator.templates.repo_code import RepoCodeTemplate
-from ragflow_orchestrator.templates.web_crawl import WebCrawlTemplate
 
 
 def _build_runtime_metrics(report: TemplateRunReport, duration_ms: float) -> TemplateRunMetrics:
@@ -82,6 +61,17 @@ def _build_quality_metrics(orchestrator: RAGOrchestrator, dataset_path: str, top
     ]
 
 
+def _create_template(
+    template_cls: type[BaseIngestionTemplate],
+    orchestrator: RAGOrchestrator,
+    graph_store: SqlGraphStore,
+) -> BaseIngestionTemplate:
+    init_params = inspect.signature(template_cls.__init__).parameters
+    if "graph_store" in init_params:
+        return template_cls(orchestrator, graph_store=graph_store)
+    return template_cls(orchestrator)
+
+
 def run_template_from_json(config_path: str) -> object:
     path = Path(config_path)
     payload = json.loads(path.read_text(encoding="utf-8"))
@@ -95,34 +85,12 @@ def run_template_from_json(config_path: str) -> object:
     if scenario_payload is None:
         raise ValueError(f"Active scenario '{scenario_name}' not found in scenarios")
 
+    template_cls = resolve_template_class(scenario_name)
+    config = template_cls.config_type().model_validate(scenario_payload)
+    template = _create_template(template_cls, orchestrator, graph_store)
+
     started = time.perf_counter()
-    report: TemplateRunReport
-    if scenario_name == "web_crawl":
-        report = WebCrawlTemplate(orchestrator).run(WebCrawlConfig.model_validate(scenario_payload))
-    elif scenario_name == "document_folder":
-        report = DocumentFolderTemplate(orchestrator).run(DocumentFolderConfig.model_validate(scenario_payload))
-    elif scenario_name == "confluence_wiki":
-        report = ConfluenceWikiTemplate(orchestrator).run(ConfluenceWikiConfig.model_validate(scenario_payload))
-    elif scenario_name == "jira":
-        report = JiraTemplate(orchestrator).run(JiraConfig.model_validate(scenario_payload))
-    elif scenario_name == "api_reference":
-        report = APIReferenceTemplate(orchestrator).run(APIReferenceConfig.model_validate(scenario_payload))
-    elif scenario_name == "bitrix":
-        report = BitrixTemplate(orchestrator).run(BitrixConfig.model_validate(scenario_payload))
-    elif scenario_name == "pypi":
-        report = PyPITemplate(orchestrator).run(PyPIConfig.model_validate(scenario_payload))
-    elif scenario_name == "github":
-        report = GitHubTemplate(orchestrator, graph_store=graph_store).run(GitHubConfig.model_validate(scenario_payload))
-    elif scenario_name == "gitlab":
-        report = GitLabTemplate(orchestrator, graph_store=graph_store).run(GitLabConfig.model_validate(scenario_payload))
-    elif scenario_name == "repo_code":
-        report = RepoCodeTemplate(orchestrator).run(RepoCodeConfig.model_validate(scenario_payload))
-    elif scenario_name == "email_ticket":
-        report = EmailTicketTemplate(orchestrator).run(EmailTicketConfig.model_validate(scenario_payload))
-    elif scenario_name == "incremental_sync":
-        report = IncrementalSyncTemplate(orchestrator).run(IncrementalSyncConfig.model_validate(scenario_payload))
-    else:
-        raise ValueError(f"Unknown scenario: {scenario_name}")
+    report = template.run(config)
 
     duration_ms = (time.perf_counter() - started) * 1000.0
     report.run_metrics = _build_runtime_metrics(report=report, duration_ms=duration_ms)

@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+from typing import get_type_hints
+
+from pydantic import BaseModel
+
 from ragflow_orchestrator.orchestrator import RAGOrchestrator
 from ragflow_orchestrator.templates.models import LanguageMode, TemplateRunReport
 from ragflow_orchestrator.templates.utils import detect_language
@@ -11,6 +15,17 @@ class BaseIngestionTemplate:
 
     def __init__(self, orchestrator: RAGOrchestrator) -> None:
         self.orchestrator = orchestrator
+
+    @classmethod
+    def config_type(cls) -> type[BaseModel]:
+        """Return the Pydantic config model expected by this template's run() method."""
+        hints = get_type_hints(cls.run)
+        config_type = hints.get("config")
+        if not isinstance(config_type, type) or not issubclass(config_type, BaseModel):
+            raise TypeError(
+                f"{cls.__name__}.run() must annotate the config parameter with a Pydantic BaseModel subclass."
+            )
+        return config_type
 
     def _language_tag(self, text: str, mode: LanguageMode) -> str:
         return detect_language(text=text, mode=mode)
