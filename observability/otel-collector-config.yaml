@@ -9,7 +9,7 @@ processors:
 
 exporters:
   otlp:
-    endpoint: signoz:4317
+    endpoint: ${OTEL_UPSTREAM_OTLP_ENDPOINT}
     tls:
       insecure: true
 

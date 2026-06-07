@@ -2,58 +2,13 @@ services:
   otel-collector:
     image: otel/opentelemetry-collector-contrib:0.103.0
     command: ["--config=/etc/otelcol/config.yaml"]
+    environment:
+      OTEL_UPSTREAM_OTLP_ENDPOINT: "${OTEL_UPSTREAM_OTLP_ENDPOINT:-host.docker.internal:4317}"
     volumes:
       - ./observability/otel-collector-config.yaml:/etc/otelcol/config.yaml:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     ports:
       - "4317:4317"
       - "4318:4318"
-    depends_on:
-      - signoz
-    restart: unless-stopped
-
-  signoz:
-    image: signoz/signoz-standalone:latest
-    privileged: true
-    ports:
-      - "8080:8080"
-      - "3301:3301"
-    restart: unless-stopped
-
-  telemetrygen-traces:
-    image: ghcr.io/open-telemetry/opentelemetry-collector-contrib/telemetrygen:latest
-    command:
-      - "traces"
-      - "--otlp-endpoint=otel-collector:4317"
-      - "--otlp-insecure"
-      - "--duration=inf"
-      - "--rate=2"
-      - "--service=seed-traces"
-    depends_on:
-      - otel-collector
-    restart: unless-stopped
-
-  telemetrygen-metrics:
-    image: ghcr.io/open-telemetry/opentelemetry-collector-contrib/telemetrygen:latest
-    command:
-      - "metrics"
-      - "--otlp-endpoint=otel-collector:4317"
-      - "--otlp-insecure"
-      - "--duration=inf"
-      - "--rate=2"
-      - "--service=seed-metrics"
-    depends_on:
-      - otel-collector
-    restart: unless-stopped
-
-  telemetrygen-logs:
-    image: ghcr.io/open-telemetry/opentelemetry-collector-contrib/telemetrygen:latest
-    command:
-      - "logs"
-      - "--otlp-endpoint=otel-collector:4317"
-      - "--otlp-insecure"
-      - "--duration=inf"
-      - "--rate=2"
-      - "--service=seed-logs"
-    depends_on:
-      - otel-collector
     restart: unless-stopped
