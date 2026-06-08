@@ -102,7 +102,7 @@ class APIReferenceTemplate(BaseIngestionTemplate):
         if not is_openapi:
             return [f"JSON object response\n{APIReferenceTemplate._to_plain_text(spec)}"]
 
-        out: list[str] = []
+        out = []
         info = _as_dict(spec.get("info"))
         title = str(info.get("title") or "API")
         version = str(info.get("version") or "")
