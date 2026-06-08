@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import base64
 import json
+from urllib import error as urlerror
 from urllib import parse, request
 
 from ragflow_orchestrator.graph import SqlGraphStore
@@ -104,16 +105,65 @@ class GitLabTemplate(BaseIngestionTemplate):
         return report
 
     def _list_projects(self, config: GitLabConfig, owner: str) -> list[dict]:
-        query = parse.urlencode({"search": owner, "simple": "true", "per_page": config.max_repos_per_owner})
+        # Prefer owner-scoped endpoints first (group/user projects) because global
+        # search often returns unrelated repositories for short owner names.
+        group_projects = self._list_group_projects(config, owner)
+        if group_projects:
+            return group_projects[: config.max_repos_per_owner]
+
+        user_projects = self._list_user_projects(config, owner)
+        if user_projects:
+            return user_projects[: config.max_repos_per_owner]
+
+        # Fallback for ambiguous owner values: broaden search then filter strictly.
+        search_limit = max(config.max_repos_per_owner * 10, 50)
+        query = parse.urlencode({"search": owner, "simple": "true", "per_page": search_limit})
         url = f"{config.base_url.rstrip('/')}/api/v4/projects?{query}"
         payload = self._request_json(config, url)
         projects = payload if isinstance(payload, list) else []
-        owner_lower = owner.lower()
-        return [
+        owner_lower = owner.lower().strip("/")
+        filtered = [
             p
             for p in projects
-            if owner_lower in str(p.get("path_with_namespace") or "").lower()
+            if str(p.get("path_with_namespace") or "").lower().startswith(f"{owner_lower}/")
+            or str(p.get("namespace", {}).get("full_path") or "").lower() == owner_lower
         ]
+        return filtered[: config.max_repos_per_owner]
+
+    def _list_group_projects(self, config: GitLabConfig, owner: str) -> list[dict]:
+        owner_path = parse.quote(owner.strip("/"), safe="")
+        query = parse.urlencode(
+            {
+                "include_subgroups": "true",
+                "simple": "true",
+                "per_page": config.max_repos_per_owner,
+            }
+        )
+        url = f"{config.base_url.rstrip('/')}/api/v4/groups/{owner_path}/projects?{query}"
+        try:
+            payload = self._request_json(config, url)
+        except urlerror.HTTPError as exc:
+            if exc.code in {401, 403, 404}:
+                return []
+            raise
+        return payload if isinstance(payload, list) else []
+
+    def _list_user_projects(self, config: GitLabConfig, owner: str) -> list[dict]:
+        owner_path = parse.quote(owner.strip("/"), safe="")
+        query = parse.urlencode(
+            {
+                "simple": "true",
+                "per_page": config.max_repos_per_owner,
+            }
+        )
+        url = f"{config.base_url.rstrip('/')}/api/v4/users/{owner_path}/projects?{query}"
+        try:
+            payload = self._request_json(config, url)
+        except urlerror.HTTPError as exc:
+            if exc.code in {401, 403, 404}:
+                return []
+            raise
+        return payload if isinstance(payload, list) else []
 
     def _list_contributors(self, config: GitLabConfig, project_id: str) -> list[dict]:
         url = f"{config.base_url.rstrip('/')}/api/v4/projects/{parse.quote(project_id, safe='')}/repository/contributors"
@@ -138,6 +188,7 @@ class GitLabTemplate(BaseIngestionTemplate):
         req.add_header("Accept", "application/json")
         if config.auth_mode == "bearer" and config.token:
             req.add_header("Authorization", f"Bearer {config.token}")
+            req.add_header("PRIVATE-TOKEN", config.token)
         with request.urlopen(req, timeout=30) as response:
             body = response.read().decode("utf-8", errors="replace")
         return json.loads(body)
