@@ -200,6 +200,11 @@ class APIReferenceConfig(BaseModel):
     sources: list[str] = Field(description="Local file paths or URLs pointing to OpenAPI/Swagger specifications.")
     include_operations: bool = Field(default=True, description="Whether to ingest API path and operation descriptions.")
     include_schemas: bool = Field(default=True, description="Whether to ingest component schema definitions.")
+    max_items: int | None = Field(
+        default=None,
+        ge=1,
+        description="Optional cap for JSON array payload items to ingest.",
+    )
     language_mode: LanguageMode = Field(
         default=LanguageMode.AUTO,
         description="Language tagging strategy for API reference text.",

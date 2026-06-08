@@ -28,6 +28,7 @@ Flags
 --top-k              number of chunks to retrieve per query      (default: 5)
 --include-operations include endpoint operations from paths      (default: true)
 --include-schemas    include components/schemas                  (default: true)
+--max-items          limit ingested JSON array items             (default: all)
 --ask                single question to answer then exit
 --interactive        run interactive question-answering REPL
 --skip-ingest        skip ingest step (use existing DB)
@@ -150,11 +151,13 @@ def ingest_api_specs(
     sources: list[str],
     include_operations: bool,
     include_schemas: bool,
+    max_items: int | None,
 ) -> IngestPerf:
     config = APIReferenceConfig(
         sources=sources,
         include_operations=include_operations,
         include_schemas=include_schemas,
+        max_items=max_items,
     )
 
     t0 = time.perf_counter()
@@ -301,6 +304,12 @@ def main() -> int:
         default=True,
         help="Include components/schemas",
     )
+    parser.add_argument(
+        "--max-items",
+        type=int,
+        default=None,
+        help="Limit ingested items for JSON array payloads (default: all)",
+    )
     parser.add_argument("--ask", default="", metavar="QUESTION", help="Single question to ask then exit")
     parser.add_argument("--interactive", action="store_true", help="Interactive question-answer REPL")
     parser.add_argument("--skip-ingest", action="store_true", help="Skip ingest; use existing DB")
@@ -330,6 +339,7 @@ def main() -> int:
             sources=args.sources,
             include_operations=args.include_operations,
             include_schemas=args.include_schemas,
+            max_items=args.max_items,
         )
         print_ingest_perf(ingest_perf)
     else:

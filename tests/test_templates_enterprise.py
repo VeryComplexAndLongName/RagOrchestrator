@@ -111,3 +111,52 @@ def test_api_reference_template_from_local_openapi(tmp_path: Path) -> None:
 
     assert len(report.ingested) >= 2
     assert not report.failed
+
+
+def test_api_reference_template_handles_non_dict_openapi_fields(tmp_path: Path) -> None:
+    orchestrator = _build_orchestrator(tmp_path)
+    template = APIReferenceTemplate(orchestrator)
+
+    # Some upstream APIs can return malformed OpenAPI-like payloads where nested fields are lists.
+    spec = {
+        "openapi": "3.0.0",
+        "info": [],
+        "paths": [],
+        "components": [],
+    }
+    spec_path = tmp_path / "openapi_malformed.json"
+    spec_path.write_text(json.dumps(spec, ensure_ascii=True), encoding="utf-8")
+
+    report = template.run(
+        APIReferenceConfig(
+            sources=[str(spec_path)],
+            include_operations=True,
+            include_schemas=True,
+            language_mode=LanguageMode.AUTO,
+        )
+    )
+
+    assert len(report.ingested) == 1
+    assert not report.failed
+
+
+def test_api_reference_template_max_items_limits_array_payload(tmp_path: Path) -> None:
+    orchestrator = _build_orchestrator(tmp_path)
+    template = APIReferenceTemplate(orchestrator)
+
+    payload = [{"id": idx, "name": f"item-{idx}"} for idx in range(1, 6)]
+    payload_path = tmp_path / "api_array.json"
+    payload_path.write_text(json.dumps(payload, ensure_ascii=True), encoding="utf-8")
+
+    report = template.run(
+        APIReferenceConfig(
+            sources=[str(payload_path)],
+            include_operations=True,
+            include_schemas=True,
+            max_items=2,
+            language_mode=LanguageMode.AUTO,
+        )
+    )
+
+    assert len(report.ingested) == 3
+    assert not report.failed
