@@ -111,3 +111,84 @@ def test_api_reference_template_from_local_openapi(tmp_path: Path) -> None:
 
     assert len(report.ingested) >= 2
     assert not report.failed
+
+
+def test_api_reference_template_handles_non_dict_openapi_fields(tmp_path: Path) -> None:
+    orchestrator = _build_orchestrator(tmp_path)
+    template = APIReferenceTemplate(orchestrator)
+
+    # Some upstream APIs can return malformed OpenAPI-like payloads where nested fields are lists.
+    spec = {
+        "openapi": "3.0.0",
+        "info": [],
+        "paths": [],
+        "components": [],
+    }
+    spec_path = tmp_path / "openapi_malformed.json"
+    spec_path.write_text(json.dumps(spec, ensure_ascii=True), encoding="utf-8")
+
+    report = template.run(
+        APIReferenceConfig(
+            sources=[str(spec_path)],
+            include_operations=True,
+            include_schemas=True,
+            language_mode=LanguageMode.AUTO,
+        )
+    )
+
+    assert len(report.ingested) == 1
+    assert not report.failed
+
+
+def test_api_reference_template_max_items_limits_array_payload(tmp_path: Path) -> None:
+    orchestrator = _build_orchestrator(tmp_path)
+    template = APIReferenceTemplate(orchestrator)
+
+    payload = [{"id": idx, "name": f"item-{idx}"} for idx in range(1, 6)]
+    payload_path = tmp_path / "api_array.json"
+    payload_path.write_text(json.dumps(payload, ensure_ascii=True), encoding="utf-8")
+
+    report = template.run(
+        APIReferenceConfig(
+            sources=[str(payload_path)],
+            include_operations=True,
+            include_schemas=True,
+            max_items=2,
+            language_mode=LanguageMode.AUTO,
+        )
+    )
+
+    assert len(report.ingested) == 3
+    assert not report.failed
+
+
+def test_api_reference_template_plain_text_for_non_openapi_json_object() -> None:
+        payload = {
+                "name": {"official": "French Republic"},
+                "flags": {"png": "https://flagcdn.com/w320/fr.png"},
+        }
+
+        chunks = APIReferenceTemplate._build_chunks(payload, include_operations=True, include_schemas=True)
+
+        assert len(chunks) == 1
+        assert "name.official: French Republic" in chunks[0]
+        assert "flags.png: https://flagcdn.com/w320/fr.png" in chunks[0]
+
+
+def test_api_reference_template_loads_xml_as_plain_text(tmp_path: Path) -> None:
+        xml_text = """<?xml version=\"1.0\" encoding=\"UTF-8\"?>
+<countries>
+    <country code=\"FR\">
+        <name>France</name>
+        <flag>https://flagcdn.com/w320/fr.png</flag>
+    </country>
+</countries>
+"""
+
+        xml_path = tmp_path / "countries.xml"
+        xml_path.write_text(xml_text, encoding="utf-8")
+
+        loaded = APIReferenceTemplate._load_spec(str(xml_path))
+        assert isinstance(loaded, str)
+        assert "countries/country[1]@code: FR" in loaded
+        assert "countries/country[1]/name[1]: France" in loaded
