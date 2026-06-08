@@ -18,6 +18,9 @@ Usage
 # Ingest local API spec file:
     python scripts/api_demo/run.py --sources d:/TEMP/openapi.yaml --ask "What endpoints exist?"
 
+# Limit array ingestion for large REST payloads:
+    python scripts/api_demo/run.py --sources https://restcountries.com/v3.1/all?fields=name,flags --max-items 10 --ask "Which country names and flags are indexed?"
+
 Flags
 -----
 --sources            API spec URLs or local file paths          (default: petstore3 openapi)

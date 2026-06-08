@@ -160,3 +160,35 @@ def test_api_reference_template_max_items_limits_array_payload(tmp_path: Path) -
 
     assert len(report.ingested) == 3
     assert not report.failed
+
+
+def test_api_reference_template_plain_text_for_non_openapi_json_object() -> None:
+        payload = {
+                "name": {"official": "French Republic"},
+                "flags": {"png": "https://flagcdn.com/w320/fr.png"},
+        }
+
+        chunks = APIReferenceTemplate._build_chunks(payload, include_operations=True, include_schemas=True)
+
+        assert len(chunks) == 1
+        assert "name.official: French Republic" in chunks[0]
+        assert "flags.png: https://flagcdn.com/w320/fr.png" in chunks[0]
+
+
+def test_api_reference_template_loads_xml_as_plain_text(tmp_path: Path) -> None:
+        xml_text = """<?xml version=\"1.0\" encoding=\"UTF-8\"?>
+<countries>
+    <country code=\"FR\">
+        <name>France</name>
+        <flag>https://flagcdn.com/w320/fr.png</flag>
+    </country>
+</countries>
+"""
+
+        xml_path = tmp_path / "countries.xml"
+        xml_path.write_text(xml_text, encoding="utf-8")
+
+        loaded = APIReferenceTemplate._load_spec(str(xml_path))
+        assert isinstance(loaded, str)
+        assert "countries/country[1]@code: FR" in loaded
+        assert "countries/country[1]/name[1]: France" in loaded
