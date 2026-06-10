@@ -54,6 +54,13 @@ class QdrantProvider:
                 "kind": chunk.kind.value,
                 "version": chunk.version,
                 "is_deleted": chunk.is_deleted,
+                "semantic_type": chunk.semantic_type,
+                "quality_score": chunk.quality_score,
+                "token_count": chunk.token_count,
+                "source_type": chunk.source_type,
+                "domain": chunk.domain,
+                "risk_score": chunk.risk_score,
+                "embedding_model": chunk.embedding_model,
             }
             points.append(PointStruct(id=point_id, vector=chunk.vector, payload=payload))
         self.client.upsert(collection_name=self.collection_name, points=points)
@@ -119,6 +126,13 @@ class QdrantProvider:
                 kind=payload.get("kind", "generic"),
                 version=payload.get("version", 1),
                 is_deleted=payload.get("is_deleted", False),
+                semantic_type=payload.get("semantic_type", "generic"),
+                quality_score=float(payload.get("quality_score", 0.5)),
+                token_count=int(payload.get("token_count", 0)),
+                source_type=payload.get("source_type", "unknown"),
+                domain=payload.get("domain", ""),
+                risk_score=float(payload.get("risk_score", 0.0)),
+                embedding_model=payload.get("embedding_model", ""),
             )
             results.append(RetrievalResult(chunk=chunk, score=float(hit.score), provider=self.name))
 

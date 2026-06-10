@@ -38,12 +38,26 @@ class SQLiteVecProvider:
                     created_at TEXT NOT NULL,
                     kind TEXT NOT NULL,
                     version INTEGER NOT NULL DEFAULT 1,
-                    is_deleted INTEGER NOT NULL DEFAULT 0
+                    is_deleted INTEGER NOT NULL DEFAULT 0,
+                    semantic_type TEXT NOT NULL DEFAULT 'generic',
+                    quality_score REAL NOT NULL DEFAULT 0.5,
+                    token_count INTEGER NOT NULL DEFAULT 0,
+                    source_type TEXT NOT NULL DEFAULT 'unknown',
+                    domain TEXT NOT NULL DEFAULT '',
+                    risk_score REAL NOT NULL DEFAULT 0.0,
+                    embedding_model TEXT NOT NULL DEFAULT ''
                 )
                 """
             )
+            self._ensure_columns(conn)
             conn.execute(
                 f"CREATE INDEX IF NOT EXISTS idx_{self.table_name}_source_id ON {self.table_name} (source_id)"
+            )
+            conn.execute(
+                f"CREATE INDEX IF NOT EXISTS idx_{self.table_name}_source_type ON {self.table_name} (source_type)"
+            )
+            conn.execute(
+                f"CREATE INDEX IF NOT EXISTS idx_{self.table_name}_domain ON {self.table_name} (domain)"
             )
             conn.commit()
 
@@ -55,8 +69,11 @@ class SQLiteVecProvider:
                 conn.execute(
                     f"""
                     INSERT INTO {self.table_name}
-                    (id, text, vector, metadata, source_id, chunk_index, created_at, kind, version, is_deleted)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    (
+                        id, text, vector, metadata, source_id, chunk_index, created_at, kind, version, is_deleted,
+                        semantic_type, quality_score, token_count, source_type, domain, risk_score, embedding_model
+                    )
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     ON CONFLICT(id) DO UPDATE SET
                         text = excluded.text,
                         vector = excluded.vector,
@@ -66,7 +83,14 @@ class SQLiteVecProvider:
                         created_at = excluded.created_at,
                         kind = excluded.kind,
                         version = excluded.version,
-                        is_deleted = excluded.is_deleted
+                        is_deleted = excluded.is_deleted,
+                        semantic_type = excluded.semantic_type,
+                        quality_score = excluded.quality_score,
+                        token_count = excluded.token_count,
+                        source_type = excluded.source_type,
+                        domain = excluded.domain,
+                        risk_score = excluded.risk_score,
+                        embedding_model = excluded.embedding_model
                     """,
                     (
                         chunk.id,
@@ -79,6 +103,13 @@ class SQLiteVecProvider:
                         chunk.kind.value,
                         chunk.version,
                         1 if chunk.is_deleted else 0,
+                        chunk.semantic_type,
+                        chunk.quality_score,
+                        chunk.token_count,
+                        chunk.source_type,
+                        chunk.domain,
+                        chunk.risk_score,
+                        chunk.embedding_model,
                     ),
                 )
             conn.commit()
@@ -127,6 +158,13 @@ class SQLiteVecProvider:
                 kind=row["kind"],
                 version=row["version"],
                 is_deleted=bool(row["is_deleted"]),
+                semantic_type=row["semantic_type"] if "semantic_type" in row.keys() else "generic",
+                quality_score=float(row["quality_score"]) if "quality_score" in row.keys() else 0.5,
+                token_count=int(row["token_count"]) if "token_count" in row.keys() else 0,
+                source_type=row["source_type"] if "source_type" in row.keys() else "unknown",
+                domain=row["domain"] if "domain" in row.keys() else "",
+                risk_score=float(row["risk_score"]) if "risk_score" in row.keys() else 0.0,
+                embedding_model=row["embedding_model"] if "embedding_model" in row.keys() else "",
             )
             results.append(RetrievalResult(chunk=chunk, score=score, provider=self.name))
 
@@ -150,3 +188,20 @@ class SQLiteVecProvider:
             if flt.op == "in" and value not in flt.value:
                 return False
         return True
+
+    def _ensure_columns(self, conn: sqlite3.Connection) -> None:
+        rows = conn.execute(f"PRAGMA table_info({self.table_name})").fetchall()
+        existing = {row[1] for row in rows}
+        required = {
+            "semantic_type": "TEXT NOT NULL DEFAULT 'generic'",
+            "quality_score": "REAL NOT NULL DEFAULT 0.5",
+            "token_count": "INTEGER NOT NULL DEFAULT 0",
+            "source_type": "TEXT NOT NULL DEFAULT 'unknown'",
+            "domain": "TEXT NOT NULL DEFAULT ''",
+            "risk_score": "REAL NOT NULL DEFAULT 0.0",
+            "embedding_model": "TEXT NOT NULL DEFAULT ''",
+        }
+        for column, ddl in required.items():
+            if column in existing:
+                continue
+            conn.execute(f"ALTER TABLE {self.table_name} ADD COLUMN {column} {ddl}")

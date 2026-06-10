@@ -31,6 +31,13 @@ class BaseChunk(BaseModel):
     kind: ChunkKind = ChunkKind.GENERIC
     version: int = 1
     is_deleted: bool = False
+    semantic_type: str = "generic"
+    quality_score: float = 0.5
+    token_count: int = 0
+    source_type: str = "unknown"
+    domain: str = ""
+    risk_score: float = 0.0
+    embedding_model: str = ""
 
 
 class CodeChunk(BaseChunk):

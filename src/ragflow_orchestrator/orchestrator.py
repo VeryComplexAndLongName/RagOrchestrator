@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 from time import perf_counter
+from urllib.parse import urlparse
 
 from ragflow_orchestrator.dedup import DedupStore
 from ragflow_orchestrator.models import BaseChunk, RetrievalQuery, RetrievalResult
@@ -51,8 +52,19 @@ class RAGOrchestrator:
                         duplicates += 1
                         continue
                     chunk.vector = vector
-                    chunk.metadata = dict(chunk.metadata)
-                    chunk.metadata["dedup_fingerprint"] = fingerprint
+                    chunk.metadata = self._enrich_metadata(
+                        source_id=source_id,
+                        chunk=chunk,
+                        metadata=chunk.metadata,
+                        fingerprint=fingerprint,
+                    )
+                    chunk.semantic_type = str(chunk.metadata.get("semantic_type", chunk.semantic_type))
+                    chunk.quality_score = float(chunk.metadata.get("quality_score", chunk.quality_score))
+                    chunk.token_count = int(chunk.metadata.get("token_count", chunk.token_count))
+                    chunk.source_type = str(chunk.metadata.get("source_type", chunk.source_type))
+                    chunk.domain = str(chunk.metadata.get("domain", chunk.domain))
+                    chunk.risk_score = float(chunk.metadata.get("risk_score", chunk.risk_score))
+                    chunk.embedding_model = str(chunk.metadata.get("embedding_model", chunk.embedding_model))
                     final_chunks.append(chunk)
                     self.dedup_store.add(fingerprint=fingerprint, source_id=source_id, chunk_id=chunk.id)
 
@@ -146,3 +158,119 @@ class RAGOrchestrator:
             dedup_path = base.with_suffix(base.suffix + ".dedup.sqlite")
             return DedupStore(str(dedup_path))
         return DedupStore()
+
+    def _enrich_metadata(
+        self,
+        source_id: str,
+        chunk: BaseChunk,
+        metadata: dict[str, object],
+        fingerprint: str,
+    ) -> dict[str, object]:
+        out = dict(metadata)
+        text = chunk.text
+
+        source_url = str(out.get("source_url") or out.get("source_origin") or "")
+        inferred_source_type = self._infer_source_type(source_id=source_id, metadata=out)
+        inferred_domain = self._infer_domain(source_url)
+        inferred_semantic_type = self._infer_semantic_type(chunk=chunk, text=text)
+        token_count = self._count_tokens(text)
+        quality_score = self._estimate_quality_score(text=text, metadata=out)
+        risk_score = self._estimate_risk_score(text=text, metadata=out)
+        embedding_model = self._embedding_model_name()
+
+        out.setdefault("source_id", source_id)
+        out["dedup_fingerprint"] = fingerprint
+        out.setdefault("source_type", inferred_source_type)
+        out.setdefault("domain", inferred_domain)
+        out.setdefault("semantic_type", inferred_semantic_type)
+        out["token_count"] = token_count
+        out["quality_score"] = quality_score
+        out["risk_score"] = risk_score
+        out["embedding_model"] = embedding_model
+        return out
+
+    @staticmethod
+    def _count_tokens(text: str) -> int:
+        return len([token for token in text.split() if token])
+
+    @staticmethod
+    def _infer_source_type(source_id: str, metadata: dict[str, object]) -> str:
+        explicit = metadata.get("source_type")
+        if explicit:
+            return str(explicit)
+        if ":" in source_id:
+            prefix = source_id.split(":", maxsplit=1)[0].strip()
+            if prefix:
+                return prefix
+        return "unknown"
+
+    @staticmethod
+    def _infer_domain(source_url: str) -> str:
+        if not source_url:
+            return ""
+        parsed = urlparse(source_url)
+        return parsed.netloc.lower()
+
+    @staticmethod
+    def _infer_semantic_type(chunk: BaseChunk, text: str) -> str:
+        if chunk.kind.value == "code":
+            return "code"
+        lowered = text.lower()
+        if "|" in text and "\n" in text:
+            return "table"
+        if any(token in lowered for token in ("error", "exception", "traceback", "failed")):
+            return "log"
+        if any(token in lowered for token in ("endpoint", "request", "response", "api")):
+            return "api"
+        if "?" in text and any(token in lowered for token in ("q:", "question", "faq")):
+            return "faq"
+        return "narrative"
+
+    @staticmethod
+    def _estimate_quality_score(text: str, metadata: dict[str, object]) -> float:
+        length = len(text)
+        score = 0.8
+
+        if length < 60:
+            score -= 0.35
+        elif length < 120:
+            score -= 0.15
+        elif length > 6000:
+            score -= 0.2
+
+        lowered = text.lower()
+        noise_markers = ("cookie", "all rights reserved", "subscribe", "privacy policy", "javascript")
+        score -= 0.08 * sum(1 for marker in noise_markers if marker in lowered)
+
+        if str(metadata.get("language") or "").strip() == "":
+            score -= 0.05
+
+        return max(0.0, min(1.0, score))
+
+    @staticmethod
+    def _estimate_risk_score(text: str, metadata: dict[str, object]) -> float:
+        lowered = text.lower()
+        score = 0.0
+        risk_terms = (
+            "password",
+            "token",
+            "secret",
+            "private key",
+            "ssn",
+            "credit card",
+            "passport",
+        )
+        score += 0.1 * sum(1 for term in risk_terms if term in lowered)
+
+        source_type = str(metadata.get("source_type") or "")
+        if source_type in {"email_ticket", "jira", "confluence"}:
+            score += 0.1
+
+        return max(0.0, min(1.0, score))
+
+    def _embedding_model_name(self) -> str:
+        for attr in ("model_name", "model"):
+            value = getattr(self.embedder, attr, None)
+            if isinstance(value, str) and value.strip():
+                return value
+        return type(self.embedder).__name__

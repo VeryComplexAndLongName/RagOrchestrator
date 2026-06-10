@@ -5,6 +5,7 @@ from typing import Protocol
 
 from ragflow_orchestrator.models import RetrievalResult
 from ragflow_orchestrator.orchestrator import RAGOrchestrator
+from ragflow_orchestrator.retrieval import AdaptiveRetriever, WeightedSignalReranker
 
 
 class AnswerGenerator(Protocol):
@@ -23,9 +24,14 @@ class RAGQueryEngine:
     def __init__(self, orchestrator: RAGOrchestrator, generator: AnswerGenerator | None = None) -> None:
         self.orchestrator = orchestrator
         self.generator = generator
+        self.retriever = AdaptiveRetriever(
+            provider=orchestrator.provider,
+            embedder=orchestrator.embedder,
+            reranker=WeightedSignalReranker(),
+        )
 
     def retrieve(self, question: str, top_k: int = 5, filters: dict[str, object] | None = None) -> list[RetrievalResult]:
-        return self.orchestrator.search(query_text=question, top_k=top_k, filters=filters)
+        return self.retriever.search(query_text=question, top_k=top_k, filters=filters)
 
     def retrieve_from_sources(self, question: str, source_types: list[str], top_k: int = 5) -> list[RetrievalResult]:
         merged: list[RetrievalResult] = []
