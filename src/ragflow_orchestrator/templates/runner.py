@@ -10,7 +10,13 @@ from ragflow_orchestrator.evaluation import evaluate_strategies
 from ragflow_orchestrator.graph import SqlGraphStore
 from ragflow_orchestrator.orchestrator import RAGOrchestrator
 from ragflow_orchestrator.orchestrator_factory import RAGOrchestratorFactory
-from ragflow_orchestrator.retrieval import CosineReranker, HybridRetriever, RerankedRetriever, SemanticRetriever
+from ragflow_orchestrator.retrieval import (
+    HybridRetriever,
+    MetadataAwareHybridRetriever,
+    RerankedRetriever,
+    SemanticRetriever,
+    WeightedSignalReranker,
+)
 from ragflow_orchestrator.templates.base import BaseIngestionTemplate
 from ragflow_orchestrator.templates.catalog import resolve_template_class
 from ragflow_orchestrator.templates.experiment_journal import append_template_run
@@ -38,7 +44,8 @@ def _build_runtime_metrics(report: TemplateRunReport, duration_ms: float) -> Tem
 def _build_quality_metrics(orchestrator: RAGOrchestrator, dataset_path: str, top_k: int) -> list[TemplateQualityMetric]:
     semantic = SemanticRetriever(provider=orchestrator.provider, embedder=orchestrator.embedder)
     hybrid = HybridRetriever(provider=orchestrator.provider, embedder=orchestrator.embedder)
-    reranked = RerankedRetriever(base_strategy=semantic, reranker=CosineReranker(embedder=orchestrator.embedder))
+    metadata_hybrid = MetadataAwareHybridRetriever(provider=orchestrator.provider, embedder=orchestrator.embedder)
+    reranked = RerankedRetriever(base_strategy=metadata_hybrid, reranker=WeightedSignalReranker())
 
     reports = evaluate_strategies(
         strategies={

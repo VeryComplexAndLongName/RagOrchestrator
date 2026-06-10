@@ -94,6 +94,11 @@ class MarkupAwareTextCleaner:
     _spaces = re.compile(r"[ \t]+")
     _blank_lines = re.compile(r"\n{3,}")
     _html_tag = re.compile(r"<\s*[a-zA-Z][^>]*>")
+    _url_only_line = re.compile(r"^https?://\S+$", re.IGNORECASE)
+    _boilerplate_line = re.compile(
+        r"(cookie|privacy policy|all rights reserved|terms of service|newsletter|subscribe|accept all)",
+        re.IGNORECASE,
+    )
 
     def clean(self, text: str) -> str:
         if not text:
@@ -111,6 +116,7 @@ class MarkupAwareTextCleaner:
         normalized = self._light_emphasis.sub(r"\2", normalized)
         normalized = self._normalize_markdown_lines(normalized)
         normalized = self._strip_html(normalized)
+        normalized = self._remove_noisy_lines(normalized)
         normalized = "\n".join(line.rstrip() for line in normalized.split("\n"))
         normalized = self._spaces.sub(" ", normalized)
         normalized = self._blank_lines.sub("\n\n", normalized)
@@ -171,3 +177,17 @@ class MarkupAwareTextCleaner:
         cells = [cell.strip() for cell in stripped.split("|")]
         cells = [cell for cell in cells if cell]
         return "; ".join(cells)
+
+    def _remove_noisy_lines(self, text: str) -> str:
+        cleaned_lines: list[str] = []
+        for raw_line in text.split("\n"):
+            line = raw_line.strip()
+            if not line:
+                cleaned_lines.append("")
+                continue
+            if self._url_only_line.match(line):
+                continue
+            if self._boilerplate_line.search(line) and len(line) < 180:
+                continue
+            cleaned_lines.append(raw_line)
+        return "\n".join(cleaned_lines)

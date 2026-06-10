@@ -32,6 +32,12 @@ Universal and extensible RAG module with standardized interfaces and storage ada
 - `chunk_index`: chunk order in source
 - `created_at`: ingestion timestamp
 - `kind`, `version`, `is_deleted`: lifecycle and typing helpers
+- `semantic_type`: inferred semantic class (`code`, `api`, `table`, `log`, `narrative`, ...)
+- `quality_score`: normalized chunk quality score (0..1)
+- `token_count`: token estimate used for retrieval/rerank decisions
+- `source_type`, `domain`: source routing and filtering attributes
+- `risk_score`: lightweight content risk signal (0..1)
+- `embedding_model`: model/provider name used for embedding
 
 Extended chunk types are supported (`CodeChunk`, `ContractChunk`) and custom models can be added via Pydantic inheritance.
 
@@ -102,6 +108,26 @@ print(OllamaEmbedder.list_models())
 ```
 
 Recommended CPU-friendly default: `nomic-embed-text:latest`.
+
+Additional embedders are available through factory providers:
+
+- `cached`: wraps a base embedder with in-memory LRU cache.
+- `fallback`: uses primary embedder and automatically falls back to secondary provider.
+
+Example (`cached` on top of `hash`):
+
+```python
+from ragflow_orchestrator.embedding import create_embedder
+
+embedder = create_embedder(
+    provider="cached",
+    options={
+        "base_provider": "hash",
+        "base_options": {"dimensions": 256},
+        "max_items": 4096,
+    },
+)
+```
 
 Use factory:
 
@@ -200,7 +226,18 @@ Included strategies:
 
 - semantic retrieval
 - hybrid retrieval
-- semantic + cosine reranker
+- semantic + reranker (pluggable)
+
+Available retrieval/rerank components:
+
+- `SemanticRetriever`
+- `HybridRetriever`
+- `MetadataAwareHybridRetriever`
+- `AdaptiveRetriever`
+- `CosineReranker`
+- `WeightedSignalReranker`
+- `HFReranker`
+- `OllamaReranker`
 
 Dual profile comparison (cosine rerank vs Ollama LLM rerank) is available via [examples/evaluate_retrieval.py](examples/evaluate_retrieval.py).
 
@@ -210,6 +247,34 @@ Dual profile comparison (cosine rerank vs Ollama LLM rerank) is available via [e
 To force a specific Ollama rerank model, set `RAG_RERANK_MODEL`.
 
 The report returns precision@k, recall@k and MRR for each strategy.
+
+## Integration Test Commands
+
+Recommended local run (PowerShell, from repository root):
+
+```powershell
+$env:NO_PROXY='localhost,127.0.0.1,::1'
+$env:no_proxy='localhost,127.0.0.1,::1'
+$env:HTTP_PROXY=''
+$env:HTTPS_PROXY=''
+$env:PGUSER='postgres'
+$env:PGPASSWORD='N0th1ing'
+$env:PGHOST='localhost'
+$env:PGPORT='5432'
+$env:PGDATABASE='app'
+$env:PGVECTOR_DSN='postgresql+psycopg://postgres:N0th1ing@localhost:5432/app'
+.\.venv\Scripts\python.exe -m pytest -q tests/integration -ra
+```
+
+Qdrant-only quick check:
+
+```powershell
+$env:NO_PROXY='localhost,127.0.0.1,::1'
+$env:no_proxy='localhost,127.0.0.1,::1'
+$env:HTTP_PROXY=''
+$env:HTTPS_PROXY=''
+.\.venv\Scripts\python.exe -m pytest -q tests/integration -ra -k qdrant
+```
 
 ## Publishing to PyPI and GitHub
 

@@ -4,7 +4,7 @@ from collections.abc import Callable
 from typing import Any
 
 from ragflow_orchestrator.errors import ConfigurationError
-from ragflow_orchestrator.retrieval.rerankers import CosineReranker, HFReranker, OllamaReranker
+from ragflow_orchestrator.retrieval.rerankers import CosineReranker, HFReranker, OllamaReranker, WeightedSignalReranker
 
 RerankerBuilder = Callable[[object | None, str | None, dict[str, Any]], object]
 
@@ -38,12 +38,25 @@ def _build_hf(embedder: object | None, model: str | None, options: dict[str, Any
     )
 
 
+def _build_weighted(embedder: object | None, model: str | None, options: dict[str, Any]) -> object:
+    del embedder, model
+    quality_weight = float(options.get("quality_weight", 0.25))
+    risk_penalty_weight = float(options.get("risk_penalty_weight", 0.1))
+    recency_weight = float(options.get("recency_weight", 0.1))
+    return WeightedSignalReranker(
+        quality_weight=quality_weight,
+        risk_penalty_weight=risk_penalty_weight,
+        recency_weight=recency_weight,
+    )
+
+
 RERANKER_BUILDERS: dict[str, RerankerBuilder] = {
     "cosine": _build_cosine,
     "ollama": _build_ollama,
     "hf": _build_hf,
     "huggingface": _build_hf,
     "cross-encoder": _build_hf,
+    "weighted": _build_weighted,
 }
 
 
