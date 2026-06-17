@@ -134,8 +134,8 @@ class EmailTicketTemplate(BaseIngestionTemplate):
             return [{"ticket_id": path.stem, "subject": "", "sender": "", "text": "\n".join(lines) if lines else text}]
 
         if suffix == ".eml":
-            with path.open("rb") as handle:
-                msg = BytesParser(policy=policy.default).parse(handle)
+            with path.open("rb") as binary_handle:
+                msg = BytesParser(policy=policy.default).parse(binary_handle)
             body = msg.get_body(preferencelist=("plain",))
             payload = body.get_content() if body else msg.get_payload(decode=True)
             if isinstance(payload, bytes):

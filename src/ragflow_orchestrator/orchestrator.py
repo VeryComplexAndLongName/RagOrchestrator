@@ -60,7 +60,7 @@ class RAGOrchestrator:
                     )
                     chunk.semantic_type = str(chunk.metadata.get("semantic_type", chunk.semantic_type))
                     chunk.quality_score = float(chunk.metadata.get("quality_score", chunk.quality_score))
-                    chunk.token_count = int(chunk.metadata.get("token_count", chunk.token_count))
+                    chunk.token_count = int(chunk.metadata.get("token_count") or chunk.token_count)
                     chunk.source_type = str(chunk.metadata.get("source_type", chunk.source_type))
                     chunk.domain = str(chunk.metadata.get("domain", chunk.domain))
                     chunk.risk_score = float(chunk.metadata.get("risk_score", chunk.risk_score))
