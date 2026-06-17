@@ -13,7 +13,6 @@ from xml.etree import ElementTree as ET
 from ragflow_orchestrator.chunking.fixed import FixedWindowChunker
 from ragflow_orchestrator.chunking.markdown import MarkdownHeadingChunker
 from ragflow_orchestrator.models import BaseChunk
-from ragflow_orchestrator.templates.utils import extract_text_from_html
 
 
 class DocumentType(str, Enum):
@@ -244,6 +243,8 @@ class HTMLDOMChunker:
         self._max_block_chars = max_block_chars
 
     def chunk(self, source_id: str, text: str, metadata: dict[str, object] | None = None) -> list[BaseChunk]:
+        from ragflow_orchestrator.templates.utils import extract_text_from_html
+        
         metadata = dict(metadata or {})
         html_source = _metadata_text(metadata, "_html_source", "html_source", "raw_html") or text
         soup = self._load_bs4(html_source)

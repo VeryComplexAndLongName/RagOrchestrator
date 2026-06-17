@@ -188,7 +188,7 @@ def test_api_reference_template_loads_xml_as_plain_text(tmp_path: Path) -> None:
         xml_path = tmp_path / "countries.xml"
         xml_path.write_text(xml_text, encoding="utf-8")
 
-        loaded = APIReferenceTemplate._load_spec(str(xml_path))
+        loaded, content_type = APIReferenceTemplate._load_spec(str(xml_path))
         assert isinstance(loaded, str)
         assert "countries/country[1]@code: FR" in loaded
         assert "countries/country[1]/name[1]: France" in loaded
