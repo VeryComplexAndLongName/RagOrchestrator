@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from ragflow_orchestrator.document_pipeline import detect_document_type
 from ragflow_orchestrator.templates.base import BaseIngestionTemplate
 from ragflow_orchestrator.templates.extractors import extract_text
 from ragflow_orchestrator.templates.models import IncrementalSyncConfig, IngestionError, TemplateRunReport
@@ -47,15 +48,19 @@ class IncrementalSyncTemplate(BaseIngestionTemplate):
                         continue
 
                     language = self._language_tag(text=raw_text, mode=config.language_mode)
+                    document_type = detect_document_type(path=path, text=raw_text).document_type.value
                     summary = self.orchestrator.ingest(
                         source_id=key,
                         raw_text=raw_text,
-                        metadata={
-                            "source_type": "incremental_file",
-                            "file_path": key,
-                            "file_ext": path.suffix.lower(),
-                            "language": language,
-                        },
+                        metadata=self._metadata_for_document_source(
+                            "incremental_file",
+                            {
+                                "file_path": key,
+                                "file_ext": path.suffix.lower(),
+                                "language": language,
+                            },
+                            document_type=document_type,
+                        ),
                     )
                     if summary.total_chunks == 0 and summary.duplicate_chunks_skipped > 0:
                         report.skipped.append(IngestionError(source=key, reason="all chunks are duplicates"))

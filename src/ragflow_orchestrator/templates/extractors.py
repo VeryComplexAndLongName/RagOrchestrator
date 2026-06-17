@@ -9,10 +9,8 @@ from ragflow_orchestrator.templates.utils import extract_text_from_html
 
 def extract_text(path: Path) -> str:
     suffix = path.suffix.lower()
-    if suffix in {".txt", ".md"}:
+    if suffix in {".txt", ".md", ".html", ".json", ".jsonl", ".xml", ".csv"}:
         return _read_text_with_fallbacks(path)
-    if suffix == ".html":
-        return extract_text_from_html(_read_text_with_fallbacks(path))
     if suffix == ".docx":
         return _extract_docx(path)
     if suffix == ".pdf":

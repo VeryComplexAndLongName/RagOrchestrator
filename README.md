@@ -15,6 +15,7 @@ Universal and extensible RAG module with standardized interfaces and storage ada
 - One internal chunk contract across all vector stores.
 - Pluggable providers for Qdrant, PGVector, and SQLite+vec style workflows.
 - Standardized ingestion pipeline: cleaning -> chunking -> embedding -> upsert.
+- Adaptive document pipeline: document detection -> normalization -> AST/linear chunking -> embedding -> upsert.
 - Standardized retrieval APIs with semantic/hybrid strategies.
 - First-class interoperability with PromptOrchestrator pipelines.
 - Extensible migration framework (Alembic-like, provider-agnostic state tracking).
@@ -48,6 +49,7 @@ Extended chunk types are supported (`CodeChunk`, `ContractChunk`) and custom mod
 - `protocols.py`: abstraction contracts (`RAGProvider`, `Chunker`, `Embedder`, `Cleaner`).
 - `adapters/`: DB-specific provider implementations.
 - `chunking/`, `cleaning/`, `embedding/`: pipeline strategy modules.
+- `document_pipeline.py`: document type detection, normalization, and adaptive chunk routing.
 - `retrieval/`: retrieval strategies (semantic/hybrid).
 - `migrations/`: versioned migration manager.
 - `migrations/schema_evolution.py`: SQL generation helpers for add/drop/rename field workflows.
@@ -59,6 +61,23 @@ Extended chunk types are supported (`CodeChunk`, `ContractChunk`) and custom mod
 - `SQLiteVecProvider`: local SQLite with JSON vector storage + cosine fallback.
 - `QdrantProvider`: native Qdrant integration.
 - `PGVectorProvider`: PostgreSQL + pgvector integration.
+
+## Document Pipeline
+
+The default document preset now routes content by detected type instead of relying only on a static preset.
+
+- Structured sources such as Markdown, HTML, DOCX, XLSX, JSON, XML, and CSV are normalized into structure-preserving text and chunked with an AST/heading-aware strategy when possible.
+- PDF and plain text fall back to linear chunking.
+- Code still uses AST-based Python chunking.
+- Document type detection is lazy-loaded and can use `filetype`, `python-magic`, extension hints, and HTTP `Content-Type` headers.
+
+Supported document types: `pdf`, `docx`, `xlsx`, `html`, `markdown`, `json`, `xml`, `csv`, `txt`, `code`, `unsupported`.
+
+For richer Markdown chunking install the optional document extras:
+
+```powershell
+pip install -e .[document]
+```
 
 ## Production Embeddings (Ollama)
 

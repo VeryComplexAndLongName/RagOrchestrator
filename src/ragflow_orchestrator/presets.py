@@ -2,8 +2,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from ragflow_orchestrator.chunking import FixedWindowChunker, MarkdownHeadingChunker, PythonCodeChunker
-from ragflow_orchestrator.cleaning import BasicTextCleaner, MarkupAwareTextCleaner
+from ragflow_orchestrator.chunking import PythonCodeChunker
+from ragflow_orchestrator.cleaning import BasicTextCleaner, DocumentAwareCleaner, MarkupAwareTextCleaner
+from ragflow_orchestrator.document_pipeline import AdaptiveDocumentChunker, MarkdownAstChunker
 
 
 @dataclass(slots=True)
@@ -24,14 +25,14 @@ def code_preset() -> PipelinePreset:
 def document_preset() -> PipelinePreset:
     return PipelinePreset(
         name="document",
-        cleaner=MarkupAwareTextCleaner(),
-        chunker=FixedWindowChunker(chunk_size=900, chunk_overlap=120),
+        cleaner=DocumentAwareCleaner(),
+        chunker=AdaptiveDocumentChunker(),
     )
 
 
 def markdown_preset() -> PipelinePreset:
     return PipelinePreset(
         name="markdown",
-        cleaner=MarkupAwareTextCleaner(),
-        chunker=MarkdownHeadingChunker(),
+        cleaner=DocumentAwareCleaner(),
+        chunker=MarkdownAstChunker(),
     )

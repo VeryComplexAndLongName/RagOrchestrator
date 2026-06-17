@@ -5,7 +5,9 @@ import json
 from email import policy
 from email.parser import BytesParser
 from pathlib import Path
+from xml.etree import ElementTree as ET
 
+from ragflow_orchestrator.document_pipeline import detect_document_type
 from ragflow_orchestrator.templates.base import BaseIngestionTemplate
 from ragflow_orchestrator.templates.models import EmailTicketConfig, IngestionError, TemplateRunReport
 
@@ -40,14 +42,18 @@ class EmailTicketTemplate(BaseIngestionTemplate):
                             continue
 
                         language = self._language_tag(text=text, mode=config.language_mode)
-                        metadata = {
-                            "source_type": "email_ticket",
-                            "file_path": str(item),
-                            "language": language,
-                            "ticket_id": payload.get("ticket_id", f"{item}:{idx}"),
-                            "subject": payload.get("subject", ""),
-                            "sender": payload.get("sender", ""),
-                        }
+                        document_type = detect_document_type(path=item, text=text).document_type.value
+                        metadata = self._metadata_for_document_source(
+                            "email_ticket",
+                            {
+                                "file_path": str(item),
+                                "language": language,
+                                "ticket_id": payload.get("ticket_id", f"{item}:{idx}"),
+                                "subject": payload.get("subject", ""),
+                                "sender": payload.get("sender", ""),
+                            },
+                            document_type=document_type,
+                        )
                         summary = self.orchestrator.ingest(
                             source_id=f"{item}:{idx}",
                             raw_text=text,
@@ -99,6 +105,33 @@ class EmailTicketTemplate(BaseIngestionTemplate):
                         }
                     )
             return rows
+
+        if suffix == ".xml":
+            text = path.read_text(encoding="utf-8", errors="replace")
+            try:
+                root = ET.fromstring(text)
+            except ET.ParseError:
+                return [{"ticket_id": path.stem, "subject": "", "sender": "", "text": text}]
+
+            lines: list[str] = []
+
+            def local_name(tag: str) -> str:
+                if "}" in tag:
+                    return tag.rsplit("}", 1)[1]
+                return tag
+
+            def walk(node: ET.Element, path_prefix: str) -> None:
+                node_text = (node.text or "").strip()
+                if node_text:
+                    lines.append(f"{path_prefix}: {node_text}")
+                for attr, value in node.attrib.items():
+                    if value:
+                        lines.append(f"{path_prefix}@{attr}: {value}")
+                for index, child in enumerate(list(node), start=1):
+                    walk(child, f"{path_prefix}/{local_name(child.tag)}[{index}]")
+
+            walk(root, local_name(root.tag))
+            return [{"ticket_id": path.stem, "subject": "", "sender": "", "text": "\n".join(lines) if lines else text}]
 
         if suffix == ".eml":
             with path.open("rb") as handle:
