@@ -4,8 +4,6 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 from zipfile import ZipFile
 
-from ragflow_orchestrator.templates.utils import extract_text_from_html
-
 
 def extract_text(path: Path) -> str:
     suffix = path.suffix.lower()

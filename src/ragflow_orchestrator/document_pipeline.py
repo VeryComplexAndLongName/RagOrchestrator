@@ -13,6 +13,7 @@ from xml.etree import ElementTree as ET
 from ragflow_orchestrator.chunking.fixed import FixedWindowChunker
 from ragflow_orchestrator.chunking.markdown import MarkdownHeadingChunker
 from ragflow_orchestrator.models import BaseChunk
+from ragflow_orchestrator.templates.utils import extract_text_from_html
 
 
 class DocumentType(str, Enum):
@@ -1120,7 +1121,6 @@ class DocxStructureChunker:
 
         try:
             from docx import Document  # type: ignore[import-not-found]
-            from docx.document import Document as DocumentTypeDocx  # type: ignore[import-not-found]
             from docx.table import Table  # type: ignore[import-not-found]
             from docx.text.paragraph import Paragraph  # type: ignore[import-not-found]
         except ImportError:

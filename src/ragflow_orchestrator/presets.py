@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from ragflow_orchestrator.chunking import PythonCodeChunker
-from ragflow_orchestrator.cleaning import BasicTextCleaner, DocumentAwareCleaner, MarkupAwareTextCleaner
+from ragflow_orchestrator.cleaning import BasicTextCleaner, DocumentAwareCleaner
 from ragflow_orchestrator.document_pipeline import AdaptiveDocumentChunker, MarkdownAstChunker
 
 
