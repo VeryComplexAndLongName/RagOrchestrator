@@ -51,5 +51,23 @@ class BaseIngestionTemplate:
             out["source_origin"] = source_url
         return out
 
+    @staticmethod
+    def _metadata_for_document_source(
+        source_type: str,
+        metadata: dict[str, object],
+        document_type: str,
+        source_url: str | None = None,
+        content_type: str | None = None,
+    ) -> dict[str, object]:
+        out = dict(metadata)
+        out["source_type"] = source_type
+        out["document_type"] = document_type
+        if source_url:
+            out["source_url"] = source_url
+            out["source_origin"] = source_url
+        if content_type:
+            out["content_type"] = content_type
+        return out
+
     def run(self, config: object) -> TemplateRunReport:  # pragma: no cover
         raise NotImplementedError

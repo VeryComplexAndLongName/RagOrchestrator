@@ -22,8 +22,8 @@ def test_markup_aware_cleaner_strips_html_and_markdown_but_keeps_urls() -> None:
 
 
 def test_document_and_markdown_presets_use_markup_aware_cleaner() -> None:
-    assert type(document_preset().cleaner).__name__ == "MarkupAwareTextCleaner"
-    assert type(markdown_preset().cleaner).__name__ == "MarkupAwareTextCleaner"
+    assert type(document_preset().cleaner).__name__ == "DocumentAwareCleaner"
+    assert type(markdown_preset().cleaner).__name__ == "DocumentAwareCleaner"
 
 
 def test_markup_aware_cleaner_removes_common_markdown_markers() -> None:

@@ -41,7 +41,7 @@ def run_folder_template(orchestrator: RAGOrchestrator) -> None:
         DocumentFolderConfig(
             folders=["datasets"],
             recursive=True,
-            extensions=[".txt", ".md", ".html", ".docx", ".pdf", ".xlsx"],
+            extensions=[".txt", ".md", ".html", ".docx", ".pdf", ".xlsx", ".json", ".xml", ".csv"],
             language_mode=LanguageMode.MIXED,
         )
     )

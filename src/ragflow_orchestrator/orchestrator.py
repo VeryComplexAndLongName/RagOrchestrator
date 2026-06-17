@@ -60,7 +60,7 @@ class RAGOrchestrator:
                     )
                     chunk.semantic_type = str(chunk.metadata.get("semantic_type", chunk.semantic_type))
                     chunk.quality_score = float(chunk.metadata.get("quality_score", chunk.quality_score))
-                    chunk.token_count = int(chunk.metadata.get("token_count", chunk.token_count))
+                    chunk.token_count = int(chunk.metadata.get("token_count") or chunk.token_count)
                     chunk.source_type = str(chunk.metadata.get("source_type", chunk.source_type))
                     chunk.domain = str(chunk.metadata.get("domain", chunk.domain))
                     chunk.risk_score = float(chunk.metadata.get("risk_score", chunk.risk_score))
@@ -171,6 +171,7 @@ class RAGOrchestrator:
 
         source_url = str(out.get("source_url") or out.get("source_origin") or "")
         inferred_source_type = self._infer_source_type(source_id=source_id, metadata=out)
+        inferred_document_type = self._infer_document_type(metadata=out)
         inferred_domain = self._infer_domain(source_url)
         inferred_semantic_type = self._infer_semantic_type(chunk=chunk, text=text)
         token_count = self._count_tokens(text)
@@ -181,6 +182,7 @@ class RAGOrchestrator:
         out.setdefault("source_id", source_id)
         out["dedup_fingerprint"] = fingerprint
         out.setdefault("source_type", inferred_source_type)
+        out.setdefault("document_type", inferred_document_type)
         out.setdefault("domain", inferred_domain)
         out.setdefault("semantic_type", inferred_semantic_type)
         out["token_count"] = token_count
@@ -203,6 +205,32 @@ class RAGOrchestrator:
             if prefix:
                 return prefix
         return "unknown"
+
+    @staticmethod
+    def _infer_document_type(metadata: dict[str, object]) -> str:
+        explicit = metadata.get("document_type") or metadata.get("doctype")
+        if explicit:
+            return str(explicit)
+        file_ext = str(metadata.get("file_ext") or "").lower().strip()
+        if file_ext in {".md", ".markdown"}:
+            return "markdown"
+        if file_ext in {".html", ".htm"}:
+            return "html"
+        if file_ext == ".docx":
+            return "docx"
+        if file_ext == ".xlsx":
+            return "xlsx"
+        if file_ext == ".pdf":
+            return "pdf"
+        if file_ext == ".json" or file_ext == ".jsonl":
+            return "json"
+        if file_ext == ".csv":
+            return "csv"
+        if file_ext == ".xml":
+            return "xml"
+        if file_ext == ".txt":
+            return "txt"
+        return "unsupported"
 
     @staticmethod
     def _infer_domain(source_url: str) -> str:

@@ -89,7 +89,7 @@ class DocumentFolderConfig(BaseModel):
     folders: list[str] = Field(description="Local folder paths to scan for documents.")
     recursive: bool = Field(default=True, description="Whether to scan subdirectories recursively.")
     extensions: list[str] = Field(
-        default_factory=lambda: [".docx", ".pdf", ".xlsx", ".txt", ".md", ".html"],
+        default_factory=lambda: [".docx", ".pdf", ".xlsx", ".txt", ".md", ".html", ".json", ".xml", ".csv"],
         description="File extensions to include during folder scanning.",
     )
     language_mode: LanguageMode = Field(
@@ -115,6 +115,8 @@ class RepoCodeConfig(BaseModel):
             ".yaml",
             ".yml",
             ".json",
+            ".xml",
+            ".csv",
         ],
         description="Source file extensions to ingest from repositories.",
     )
@@ -128,7 +130,7 @@ class EmailTicketConfig(BaseModel):
     sources: list[str] = Field(description="File or folder paths containing support ticket exports.")
     recursive: bool = Field(default=True, description="Whether to scan subdirectories when a source is a folder.")
     extensions: list[str] = Field(
-        default_factory=lambda: [".eml", ".jsonl", ".csv", ".txt", ".md"],
+        default_factory=lambda: [".eml", ".jsonl", ".csv", ".txt", ".md", ".xml"],
         description="Ticket file extensions to include during scanning.",
     )
     language_mode: LanguageMode = Field(
@@ -141,7 +143,7 @@ class IncrementalSyncConfig(BaseModel):
     folders: list[str] = Field(description="Local folder paths monitored for new or changed files.")
     recursive: bool = Field(default=True, description="Whether to monitor subdirectories recursively.")
     extensions: list[str] = Field(
-        default_factory=lambda: [".docx", ".pdf", ".xlsx", ".txt", ".md", ".html"],
+        default_factory=lambda: [".docx", ".pdf", ".xlsx", ".txt", ".md", ".html", ".json", ".xml", ".csv"],
         description="File extensions eligible for incremental ingestion.",
     )
     state_file: str = Field(

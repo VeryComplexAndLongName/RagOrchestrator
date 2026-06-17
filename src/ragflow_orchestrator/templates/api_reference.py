@@ -6,6 +6,7 @@ from pathlib import Path
 from urllib import request
 from xml.etree import ElementTree as ET
 
+from ragflow_orchestrator.document_pipeline import detect_document_type
 from ragflow_orchestrator.templates.base import BaseIngestionTemplate
 from ragflow_orchestrator.templates.models import APIReferenceConfig, IngestionError, TemplateRunReport
 
@@ -19,7 +20,7 @@ class APIReferenceTemplate(BaseIngestionTemplate):
 
         for source in config.sources:
             try:
-                spec = self._load_spec(source)
+                spec, content_type = self._load_spec(source)
                 chunks = self._build_chunks(
                     spec,
                     include_operations=config.include_operations,
@@ -36,10 +37,12 @@ class APIReferenceTemplate(BaseIngestionTemplate):
                     summary = self.orchestrator.ingest(
                         source_id=f"api:{source}:{idx}",
                         raw_text=chunk,
-                        metadata=self._metadata_for_url_source(
+                        metadata=self._metadata_for_document_source(
                             "api_reference",
                             {"source": source, "language": language},
-                            source_url,
+                            document_type=detect_document_type(text=chunk, content_type=content_type, source_name=source).document_type.value,
+                            source_url=source_url,
+                            content_type=content_type,
                         ),
                     )
                     if summary.total_chunks == 0 and summary.duplicate_chunks_skipped > 0:
@@ -52,20 +55,22 @@ class APIReferenceTemplate(BaseIngestionTemplate):
         return report
 
     @staticmethod
-    def _load_spec(source: str) -> object:
+    def _load_spec(source: str) -> tuple[object, str]:
         if source.startswith("http://") or source.startswith("https://"):
             req = request.Request(url=source, method="GET")
             req.add_header("Accept", "application/json, application/yaml, text/yaml, text/plain")
             with request.urlopen(req, timeout=30) as response:
                 body = response.read().decode("utf-8", errors="replace")
+                content_type = response.headers.get("Content-Type", "").split(";", 1)[0].strip().lower()
         else:
             body = Path(source).read_text(encoding="utf-8", errors="replace")
+            content_type = ""
 
         if APIReferenceTemplate._looks_like_xml(body):
-            return APIReferenceTemplate._xml_to_text(body)
+            return APIReferenceTemplate._xml_to_text(body), content_type
 
         try:
-            return json.loads(body)
+            return json.loads(body), content_type or "application/json"
         except json.JSONDecodeError:
             try:
                 import yaml  # type: ignore[import-not-found]
@@ -74,7 +79,7 @@ class APIReferenceTemplate(BaseIngestionTemplate):
             parsed = yaml.safe_load(body)
             if parsed is None:
                 raise ValueError("Invalid API payload: empty document")
-            return parsed
+            return parsed, content_type or "text/plain"
 
     @staticmethod
     def _build_chunks(spec: object, include_operations: bool, include_schemas: bool, max_items: int | None = None) -> list[str]:
