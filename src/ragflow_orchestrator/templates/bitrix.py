@@ -4,6 +4,7 @@ import json
 from typing import Any, Dict, Iterable, List, Tuple
 from urllib import parse, request
 
+from ragflow_orchestrator.retry import retry
 from ragflow_orchestrator.templates.base import BaseIngestionTemplate
 from ragflow_orchestrator.templates.models import (
     BitrixConfig,
@@ -263,6 +264,16 @@ class BitrixTemplate(BaseIngestionTemplate):
 
     @staticmethod
     def _request_json(
+        config: BitrixConfig,
+        method: str,
+        params: Dict[str, Any] | None,
+    ) -> Dict[str, Any]:
+        """Fetch JSON from Bitrix API with retry logic."""
+        return BitrixTemplate._fetch_json_with_retry(config, method, params)
+
+    @staticmethod
+    @retry(max_retries=3, initial_delay=1.0, max_delay=10.0, backoff_factor=2.0)
+    def _fetch_json_with_retry(
         config: BitrixConfig,
         method: str,
         params: Dict[str, Any] | None,

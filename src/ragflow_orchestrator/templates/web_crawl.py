@@ -4,6 +4,7 @@ from collections import deque
 from urllib import request
 
 from ragflow_orchestrator.document_pipeline import detect_document_type
+from ragflow_orchestrator.retry import retry
 from ragflow_orchestrator.templates.base import BaseIngestionTemplate
 from ragflow_orchestrator.templates.models import IngestionError, TemplateRunReport, WebCrawlConfig
 from ragflow_orchestrator.templates.utils import extract_links, extract_text_from_html, is_same_domain
@@ -71,6 +72,12 @@ class WebCrawlTemplate(BaseIngestionTemplate):
 
     @staticmethod
     def _fetch_html(url: str, timeout: int = 15) -> tuple[str, str] | str:
+        """Fetch HTML from URL with retry logic."""
+        return WebCrawlTemplate._fetch_html_with_retry(url, timeout)
+
+    @staticmethod
+    @retry(max_retries=3, initial_delay=1.0, max_delay=10.0, backoff_factor=2.0)
+    def _fetch_html_with_retry(url: str, timeout: int = 15) -> tuple[str, str] | str:
         req = request.Request(url=url, headers={"User-Agent": "rag-orchestrator/0.1"})
         with request.urlopen(req, timeout=timeout) as response:
             content_type = response.headers.get("Content-Type", "")
