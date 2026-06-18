@@ -1,5 +1,6 @@
 -e .[dev,document]
 beautifulsoup4>=4.12
+jusText>=3.0.1
 filetype>=1.2.0
 markdown-it-py>=3.0.0
 openpyxl>=3.1
