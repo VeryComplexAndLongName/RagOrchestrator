@@ -169,4 +169,5 @@ class TestRetryOrLog:
         assert result is None
         assert callback_called
         assert isinstance(callback_exc, ValueError)
+        assert callback_msg is not None
         assert "test failure" in callback_msg
