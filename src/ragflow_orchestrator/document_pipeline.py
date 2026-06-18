@@ -10,6 +10,12 @@ from pathlib import Path
 from typing import Any
 from xml.etree import ElementTree as ET
 
+from ragflow_orchestrator.boilerplate import (
+    BoilerplateRemover,
+    BoilerplateRemoverRegistry,
+    default_boilerplate_registry,
+    parse_aggressiveness,
+)
 from ragflow_orchestrator.chunking.fixed import FixedWindowChunker
 from ragflow_orchestrator.chunking.markdown import MarkdownHeadingChunker
 from ragflow_orchestrator.models import BaseChunk
@@ -1686,7 +1692,7 @@ def _source_path(metadata: dict[str, object]) -> Path | None:
 
 
 class AdaptiveDocumentChunker:
-    def __init__(self) -> None:
+    def __init__(self, boilerplate_registry: BoilerplateRemoverRegistry | None = None) -> None:
         from ragflow_orchestrator.chunking.code_python import PythonCodeChunker
 
         self._code_chunker = PythonCodeChunker()
@@ -1699,44 +1705,68 @@ class AdaptiveDocumentChunker:
         self._xml_chunker = XmlSubtreeChunker(fallback=self._markdown_chunker)
         self._csv_chunker = CsvRowGroupChunker(fallback=self._linear_chunker)
         self._pdf_chunker = PdfLayoutChunker(fallback=self._linear_chunker)
+        self._boilerplate_registry = boilerplate_registry or default_boilerplate_registry()
+
+    def register_boilerplate_remover(
+        self,
+        *,
+        document_type: str,
+        name: str,
+        remover: BoilerplateRemover,
+        default: bool = False,
+    ) -> None:
+        self._boilerplate_registry.register(document_type=document_type, name=name, remover=remover, default=default)
+
+    def unregister_boilerplate_remover(self, *, document_type: str, name: str) -> None:
+        self._boilerplate_registry.unregister(document_type=document_type, name=name)
+
+    def set_default_boilerplate_remover(self, *, document_type: str, name: str) -> None:
+        self._boilerplate_registry.set_default(document_type=document_type, name=name)
 
     def chunk(self, source_id: str, text: str, metadata: dict[str, object] | None = None) -> list[BaseChunk]:
         metadata = dict(metadata or {})
         document_type = self._document_type(metadata=metadata, source_id=source_id, text=text)
         metadata.setdefault("document_type", document_type.value)
 
+        # Apply boilerplate removal on raw text before chunking.
+        cleaned_text = self._apply_boilerplate_removal_to_text(
+            text=text,
+            document_type=document_type,
+            metadata=metadata,
+        )
+
         if document_type == DocumentType.CODE:
-            return self._code_chunker.chunk(source_id=source_id, text=text, metadata=metadata)
+            return self._code_chunker.chunk(source_id=source_id, text=cleaned_text, metadata=metadata)
 
         if document_type == DocumentType.HTML:
-            return self._html_chunker.chunk(source_id=source_id, text=text, metadata=metadata)
+            return self._html_chunker.chunk(source_id=source_id, text=cleaned_text, metadata=metadata)
 
         if document_type == DocumentType.DOCX:
-            return self._docx_chunker.chunk(source_id=source_id, text=text, metadata=metadata)
+            return self._docx_chunker.chunk(source_id=source_id, text=cleaned_text, metadata=metadata)
 
         if document_type == DocumentType.XLSX:
-            return self._xlsx_chunker.chunk(source_id=source_id, text=text, metadata=metadata)
+            return self._xlsx_chunker.chunk(source_id=source_id, text=cleaned_text, metadata=metadata)
 
         if document_type == DocumentType.JSON:
-            return self._json_chunker.chunk(source_id=source_id, text=text, metadata=metadata)
+            return self._json_chunker.chunk(source_id=source_id, text=cleaned_text, metadata=metadata)
 
         if document_type == DocumentType.XML:
-            return self._xml_chunker.chunk(source_id=source_id, text=text, metadata=metadata)
+            return self._xml_chunker.chunk(source_id=source_id, text=cleaned_text, metadata=metadata)
 
         if document_type == DocumentType.CSV:
-            return self._csv_chunker.chunk(source_id=source_id, text=text, metadata=metadata)
+            return self._csv_chunker.chunk(source_id=source_id, text=cleaned_text, metadata=metadata)
 
         if document_type == DocumentType.PDF:
-            return self._pdf_chunker.chunk(source_id=source_id, text=text, metadata=metadata)
+            return self._pdf_chunker.chunk(source_id=source_id, text=cleaned_text, metadata=metadata)
 
         if document_type in {DocumentType.TXT, DocumentType.UNSUPPORTED}:
-            return self._linear_chunker.chunk(source_id=source_id, text=text, metadata=metadata)
+            return self._linear_chunker.chunk(source_id=source_id, text=cleaned_text, metadata=metadata)
 
         if document_type == DocumentType.MARKDOWN:
-            normalized = self._normalize_structured_text(text=text, document_type=document_type)
+            normalized = self._normalize_structured_text(text=cleaned_text, document_type=document_type)
             return self._markdown_chunker.chunk(source_id=source_id, text=normalized, metadata=metadata)
 
-        normalized = self._normalize_structured_text(text=text, document_type=document_type)
+        normalized = self._normalize_structured_text(text=cleaned_text, document_type=document_type)
         return self._linear_chunker.chunk(source_id=source_id, text=normalized, metadata=metadata)
 
     @staticmethod
@@ -1759,6 +1789,41 @@ class AdaptiveDocumentChunker:
         if document_type == DocumentType.CSV:
             return _normalize_csv(cleaned)
         return cleaned
+
+    def _apply_boilerplate_removal_to_text(
+        self,
+        *,
+        text: str,
+        document_type: DocumentType,
+        metadata: dict[str, object],
+    ) -> str:
+        if not text or metadata.get("boilerplate_remove") is False:
+            return text
+
+        aggressiveness = parse_aggressiveness(
+            metadata.get("boilerplate_aggressiveness")
+            or metadata.get("boilerplate_level")
+            or metadata.get("cleaner_aggressiveness")
+        )
+        preferred_name = str(metadata.get("boilerplate_remover") or "").strip() or None
+        remover = self._boilerplate_registry.resolve(document_type=document_type.value, preferred_name=preferred_name)
+        if remover is None:
+            return text
+
+        result = remover.remove(
+            text,
+            document_type=document_type.value,
+            aggressiveness=aggressiveness,
+            metadata=metadata,
+        )
+
+        # Track removal stats in metadata for logging/debugging
+        metadata["boilerplate_remover"] = result.remover
+        metadata["boilerplate_aggressiveness"] = result.aggressiveness.value
+        metadata["boilerplate_removed_lines"] = result.removed_lines
+        metadata["boilerplate_total_lines"] = result.total_lines
+
+        return result.text
 
 
 def detect_document_type(
