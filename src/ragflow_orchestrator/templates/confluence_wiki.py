@@ -4,6 +4,7 @@ import base64
 import json
 from urllib import parse, request
 
+from ragflow_orchestrator.retry import retry
 from ragflow_orchestrator.templates.base import BaseIngestionTemplate
 from ragflow_orchestrator.templates.models import ConfluenceWikiConfig, IngestionError, TemplateRunReport
 from ragflow_orchestrator.templates.utils import extract_text_from_html
@@ -87,6 +88,12 @@ class ConfluenceWikiTemplate(BaseIngestionTemplate):
 
     @staticmethod
     def _request_json(config: ConfluenceWikiConfig, url: str) -> dict:
+        """Fetch JSON from URL with retry logic."""
+        return ConfluenceWikiTemplate._fetch_json_with_retry(config, url)
+
+    @staticmethod
+    @retry(max_retries=3, initial_delay=1.0, max_delay=10.0, backoff_factor=2.0)
+    def _fetch_json_with_retry(config: ConfluenceWikiConfig, url: str) -> dict:
         req = request.Request(url=url, method="GET")
         req.add_header("Accept", "application/json")
 

@@ -4,6 +4,7 @@ import base64
 import json
 from urllib import parse, request
 
+from ragflow_orchestrator.retry import retry
 from ragflow_orchestrator.templates.base import BaseIngestionTemplate
 from ragflow_orchestrator.templates.models import IngestionError, JiraConfig, TemplateRunReport
 
@@ -105,6 +106,12 @@ class JiraTemplate(BaseIngestionTemplate):
 
     @staticmethod
     def _request_json(config: JiraConfig, url: str) -> dict:
+        """Fetch JSON from URL with retry logic."""
+        return JiraTemplate._fetch_json_with_retry(config, url)
+
+    @staticmethod
+    @retry(max_retries=3, initial_delay=1.0, max_delay=10.0, backoff_factor=2.0)
+    def _fetch_json_with_retry(config: JiraConfig, url: str) -> dict:
         req = request.Request(url=url, method="GET")
         req.add_header("Accept", "application/json")
 

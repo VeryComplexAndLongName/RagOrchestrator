@@ -4,6 +4,7 @@ import json
 import re
 from urllib import parse, request
 
+from ragflow_orchestrator.retry import retry
 from ragflow_orchestrator.templates.base import BaseIngestionTemplate
 from ragflow_orchestrator.templates.models import IngestionError, PyPIConfig, TemplateRunReport
 from ragflow_orchestrator.templates.utils import html_to_text
@@ -67,6 +68,12 @@ class PyPITemplate(BaseIngestionTemplate):
 
     @staticmethod
     def _fetch_package_payload(package: str) -> dict:
+        """Fetch package JSON from PyPI with retry logic."""
+        return PyPITemplate._fetch_package_payload_with_retry(package)
+
+    @staticmethod
+    @retry(max_retries=3, initial_delay=1.0, max_delay=10.0, backoff_factor=2.0)
+    def _fetch_package_payload_with_retry(package: str) -> dict:
         safe_package = parse.quote(package, safe="")
         url = f"https://pypi.org/pypi/{safe_package}/json"
         req = request.Request(url=url, method="GET")

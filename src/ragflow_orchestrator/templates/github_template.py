@@ -5,6 +5,7 @@ import json
 from urllib import parse, request
 
 from ragflow_orchestrator.graph import SqlGraphStore
+from ragflow_orchestrator.retry import retry
 from ragflow_orchestrator.templates.base import BaseIngestionTemplate
 from ragflow_orchestrator.templates.models import GitHubConfig, IngestionError, TemplateRunReport
 
@@ -128,6 +129,12 @@ class GitHubTemplate(BaseIngestionTemplate):
 
     @staticmethod
     def _request_json(config: GitHubConfig, url: str) -> object:
+        """Fetch JSON from URL with retry logic."""
+        return GitHubTemplate._fetch_json_with_retry(config, url)
+
+    @staticmethod
+    @retry(max_retries=3, initial_delay=1.0, max_delay=10.0, backoff_factor=2.0)
+    def _fetch_json_with_retry(config: GitHubConfig, url: str) -> object:
         req = request.Request(url=url, method="GET")
         req.add_header("Accept", "application/vnd.github+json")
         req.add_header("X-GitHub-Api-Version", "2022-11-28")
