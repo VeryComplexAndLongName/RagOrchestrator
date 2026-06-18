@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import time
-from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -73,7 +72,6 @@ class TestRetry:
     def test_retry_with_max_delay(self) -> None:
         """Test that delay is capped at max_delay."""
         call_count = 0
-        delays: list[float] = []
 
         @retry(max_retries=3, initial_delay=10.0, max_delay=0.05, backoff_factor=2.0, jitter=False)
         def fails_multiple_times() -> str:
@@ -84,7 +82,7 @@ class TestRetry:
             return "success"
 
         start = time.time()
-        result = fails_multiple_times()
+        fails_multiple_times()
         elapsed = time.time() - start
 
         # Should have 4 calls (1 initial + 3 retries)

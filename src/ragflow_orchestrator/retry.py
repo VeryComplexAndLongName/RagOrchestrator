@@ -102,13 +102,11 @@ def retry_or_log(
         @wraps(func)
         def wrapper(*args: P.args, **kwargs: P.kwargs) -> T | None:
             delay = initial_delay
-            last_exception: Exception | None = None
 
             for attempt in range(max_retries + 1):
                 try:
                     return func(*args, **kwargs)
                 except Exception as exc:
-                    last_exception = exc
                     if attempt < max_retries:
                         if jitter:
                             jittered_delay = delay * (0.5 + random.random())
