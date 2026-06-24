@@ -1,7 +1,7 @@
 """
 GitHub RAG Demo
 ===============
-Ingest public GitHub repositories into a local SQLite+vec store and a graph store,
+Ingest public GitHub repositories into a local PostgreSQL + Qdrant store and a graph store,
 then answer questions about the repositories via RAGQueryEngine backed by Ollama.
 
 Usage
@@ -18,7 +18,7 @@ Usage
 Flags
 -----
 --owners            list of GitHub owners to ingest              (default: fastapi psf pallets)
---db                path to SQLite+vec database file            (default: scripts/github_demo/github.sqlite)
+--db                PostgreSQL DSN (default: env RAG_POSTGRES_DSN or local dev DSN)
 --graph-db          path to repository graph database           (default: scripts/github_demo/github_graph.sqlite)
 --embed-model       Ollama embedding model name                 (default: nomic-embed-text:latest)
 --chat-model        Ollama chat model name                      (default: llama3.1:latest)
@@ -135,7 +135,7 @@ class QueryPerf:
 
 def build_orchestrator(db_path: str, embed_model: str, ollama_url: str) -> RAGOrchestrator:
     embedder = OllamaEmbedder(model=embed_model, base_url=ollama_url)
-    provider = create_provider("sqlite+vec", db_path=db_path, table_name="github_chunks")
+    provider = create_provider("postgres+qdrant", dsn=db_path, qdrant_url=os.getenv("RAG_QDRANT_URL", "http://localhost:6333"), qdrant_collection=os.getenv("RAG_QDRANT_COLLECTION", "github_chunks"))
     preset = document_preset()
     return RAGOrchestrator(
         provider=provider,
@@ -317,8 +317,8 @@ def main() -> int:
     )
     parser.add_argument(
         "--db",
-        default=str(Path(__file__).parent / "github.sqlite"),
-        help="SQLite+vec DB path (default: scripts/github_demo/github.sqlite)",
+        default=os.environ.get("RAG_POSTGRES_DSN", "postgresql://rag_user:rag_password@localhost:5432/rag_db"),
+        help="PostgreSQL DSN (default: env RAG_POSTGRES_DSN or local dev DSN)",
     )
     parser.add_argument(
         "--graph-db",
@@ -362,15 +362,14 @@ def main() -> int:
     parser.add_argument("--perf", action="store_true", help="Print ingest perf report even without --ask")
     args = parser.parse_args()
 
-    db_path = Path(args.db)
-    db_path.parent.mkdir(parents=True, exist_ok=True)
+    pg_dsn = args.db
     graph_db_path = Path(args.graph_db)
     graph_db_path.parent.mkdir(parents=True, exist_ok=True)
 
-    print(f"\nBuilding orchestrator  (embedder: {args.embed_model}, db: {db_path})")
+    print(f"\nBuilding orchestrator  (embedder: {args.embed_model}, pg_dsn: {pg_dsn})")
     try:
         orchestrator = build_orchestrator(
-            db_path=str(db_path),
+            db_path=pg_dsn,
             embed_model=args.embed_model,
             ollama_url=args.ollama_url,
         )
@@ -442,3 +441,6 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
+
+

@@ -8,7 +8,12 @@ from ragflow_orchestrator.presets import document_preset
 
 
 def build_demo_index() -> tuple[object, object]:
-    provider = create_provider("sqlite+vec", db_path="eval_demo.db", table_name="eval_chunks")
+    provider = create_provider(
+        "postgres+qdrant",
+        dsn=os.getenv("RAG_POSTGRES_DSN", "postgresql://rag_user:rag_password@localhost:5432/rag_db"),
+        qdrant_url=os.getenv("RAG_QDRANT_URL", "http://localhost:6333"),
+        qdrant_collection=os.getenv("RAG_QDRANT_COLLECTION", "eval_chunks"),
+    )
     embedder = HashEmbedder(dimensions=64)
     preset = document_preset()
 

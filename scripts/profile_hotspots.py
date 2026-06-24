@@ -18,8 +18,14 @@ def _build_text(i: int, words: int, rnd: random.Random) -> str:
 
 
 def _build_orchestrator(args: argparse.Namespace) -> RAGOrchestrator:
-    if args.provider == "sqlite+vec":
-        provider = create_provider("sqlite+vec", db_path=args.sqlite_db, table_name=args.table_name)
+    if args.provider == "postgres+qdrant":
+        dsn = args.pg_dsn or "postgresql://rag_user:rag_password@localhost:5432/rag_db"
+        provider = create_provider(
+            "postgres+qdrant",
+            dsn=dsn,
+            qdrant_url=args.qdrant_url,
+            qdrant_collection=args.table_name,
+        )
     elif args.provider == "pgvector":
         if not args.pg_dsn:
             raise ValueError("--pg-dsn is required for pgvector")
@@ -69,8 +75,7 @@ def run_profile(args: argparse.Namespace) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Profile bottlenecks in ingestion and retrieval pipeline")
-    parser.add_argument("--provider", default="sqlite+vec", choices=["sqlite+vec", "pgvector", "qdrant"])
-    parser.add_argument("--sqlite-db", default="loadtest/profile.sqlite")
+    parser.add_argument("--provider", default="postgres+qdrant", choices=["postgres+qdrant", "pgvector", "qdrant"])
     parser.add_argument("--pg-dsn", default="")
     parser.add_argument("--qdrant-url", default="http://localhost:6333")
     parser.add_argument("--table-name", default="profile_chunks")
@@ -91,3 +96,5 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
+

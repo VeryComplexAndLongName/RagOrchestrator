@@ -14,7 +14,7 @@ from ragflow_orchestrator.templates.models import BitrixConfig, LanguageMode
 
 
 def _build_orchestrator(tmp_path: Path) -> RAGOrchestrator:
-    provider = create_provider("sqlite+vec", db_path=str(tmp_path / "bitrix.db"), table_name="bitrix_chunks")
+    provider = create_provider("postgres+qdrant", dsn="postgresql://rag_user:rag_password@localhost:5432/rag_db", qdrant_url="http://localhost:6333", qdrant_collection="bitrix_chunks")
     preset = document_preset()
     return RAGOrchestrator(
         provider=provider,
@@ -219,3 +219,5 @@ def test_bitrix_im_source_url_is_fully_escaped() -> None:
 
     source_url = BitrixTemplate._bitrix_source_url(config, "im", "chat/ops?x=1")
     assert source_url == "https://portal.bitrix24.ru/online/?IM_DIALOG=chat%2Fops%3Fx%3D1"
+
+

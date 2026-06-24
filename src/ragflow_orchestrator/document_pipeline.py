@@ -16,9 +16,11 @@ from ragflow_orchestrator.boilerplate import (
     default_boilerplate_registry,
     parse_aggressiveness,
 )
+from ragflow_orchestrator.config import SubtypeClassificationConfig
 from ragflow_orchestrator.chunking.fixed import FixedWindowChunker
 from ragflow_orchestrator.chunking.markdown import MarkdownHeadingChunker
 from ragflow_orchestrator.models import BaseChunk
+from ragflow_orchestrator.subtype_classifier import DocumentSubtypeClassifier, SubtypePrediction
 
 
 class DocumentType(str, Enum):
@@ -1692,7 +1694,12 @@ def _source_path(metadata: dict[str, object]) -> Path | None:
 
 
 class AdaptiveDocumentChunker:
-    def __init__(self, boilerplate_registry: BoilerplateRemoverRegistry | None = None) -> None:
+    def __init__(
+        self,
+        boilerplate_registry: BoilerplateRemoverRegistry | None = None,
+        subtype_config: SubtypeClassificationConfig | None = None,
+        subtype_classifier: DocumentSubtypeClassifier | None = None,
+    ) -> None:
         from ragflow_orchestrator.chunking.code_python import PythonCodeChunker
 
         self._code_chunker = PythonCodeChunker()
@@ -1706,6 +1713,9 @@ class AdaptiveDocumentChunker:
         self._csv_chunker = CsvRowGroupChunker(fallback=self._linear_chunker)
         self._pdf_chunker = PdfLayoutChunker(fallback=self._linear_chunker)
         self._boilerplate_registry = boilerplate_registry or default_boilerplate_registry()
+        self._subtype_classifier = subtype_classifier or DocumentSubtypeClassifier(
+            config=subtype_config or SubtypeClassificationConfig()
+        )
 
     def register_boilerplate_remover(
         self,
@@ -1727,6 +1737,11 @@ class AdaptiveDocumentChunker:
         metadata = dict(metadata or {})
         document_type = self._document_type(metadata=metadata, source_id=source_id, text=text)
         metadata.setdefault("document_type", document_type.value)
+        if not metadata.get("document_subtype"):
+            subtype_prediction = self._detect_subtype(metadata=metadata, text=text, document_type=document_type)
+            metadata["document_subtype"] = subtype_prediction.subtype
+            metadata["document_subtype_confidence"] = subtype_prediction.confidence
+            metadata["document_subtype_source"] = subtype_prediction.source
 
         # Apply boilerplate removal on raw text before chunking.
         cleaned_text = self._apply_boilerplate_removal_to_text(
@@ -1779,6 +1794,20 @@ class AdaptiveDocumentChunker:
         content_type = str(metadata.get("content_type") or "").strip().lower()
         detected = detect_document_type(source_name=source_name, content_type=content_type, text=text)
         return detected.document_type
+
+    def _detect_subtype(
+        self,
+        *,
+        metadata: dict[str, object],
+        text: str,
+        document_type: DocumentType,
+    ) -> SubtypePrediction:
+        title = str(metadata.get("title") or metadata.get("name") or "") or None
+        return self._subtype_classifier.predict(
+            text=text,
+            title=title,
+            document_type=document_type.value,
+        )
 
     def _normalize_structured_text(self, text: str, document_type: DocumentType) -> str:
         cleaned = DocumentAwareCleaner().clean(text)
@@ -1856,6 +1885,28 @@ def detect_document_type(
             return DocumentDetection(document_type=mapped, source="extension")
 
     return DocumentDetection(document_type=DocumentType.UNSUPPORTED)
+
+
+def detect_document_subtype(
+    *,
+    text: str,
+    title: str | None = None,
+    document_type: DocumentType | str | None = None,
+    config: SubtypeClassificationConfig | None = None,
+) -> SubtypePrediction:
+    """Detect semantic subtype using hybrid rules+LLM classifier.
+
+    Returns subtype label, confidence, and source.
+    """
+    if isinstance(document_type, DocumentType):
+        doc_type_value = document_type.value
+    elif isinstance(document_type, str):
+        doc_type_value = document_type
+    else:
+        doc_type_value = None
+
+    classifier = DocumentSubtypeClassifier(config=config or SubtypeClassificationConfig())
+    return classifier.predict(text=text, title=title, document_type=doc_type_value)
 
 
 def _detect_from_path(path: Path) -> DocumentDetection:

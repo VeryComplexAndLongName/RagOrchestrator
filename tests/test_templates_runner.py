@@ -6,7 +6,7 @@ from pathlib import Path
 from ragflow_orchestrator.templates.runner import run_template_from_json
 
 
-def test_run_template_from_json_with_repo_code(tmp_path: Path) -> None:
+def test_run_template_from_json_with_repo_code(tmp_path: Path, require_qdrant_service: None) -> None:
     repo = tmp_path / "repo"
     repo.mkdir()
     (repo / "sample.py").write_text("def f():\n    return 1\n", encoding="utf-8")
@@ -14,10 +14,11 @@ def test_run_template_from_json_with_repo_code(tmp_path: Path) -> None:
     cfg = {
         "orchestrator": {
             "provider": {
-                "kind": "sqlite+vec",
+                "kind": "postgres+qdrant",
                 "params": {
-                    "db_path": str(tmp_path / "runner.db"),
-                    "table_name": "runner_chunks",
+                    "dsn": "postgresql://rag_user:rag_password@localhost:5432/rag_db",
+                    "qdrant_url": "http://localhost:6333",
+                    "qdrant_collection": "runner_chunks",
                 },
             },
             "embedding": {
@@ -49,7 +50,7 @@ def test_run_template_from_json_with_repo_code(tmp_path: Path) -> None:
     assert report.quality == []
 
 
-def test_run_template_from_json_with_eval_enabled(tmp_path: Path) -> None:
+def test_run_template_from_json_with_eval_enabled(tmp_path: Path, require_qdrant_service: None) -> None:
     repo = tmp_path / "repo"
     repo.mkdir()
     (repo / "sample.py").write_text("def add(a, b):\n    return a + b\n", encoding="utf-8")
@@ -57,10 +58,11 @@ def test_run_template_from_json_with_eval_enabled(tmp_path: Path) -> None:
     cfg = {
         "orchestrator": {
             "provider": {
-                "kind": "sqlite+vec",
+                "kind": "postgres+qdrant",
                 "params": {
-                    "db_path": str(tmp_path / "runner_eval.db"),
-                    "table_name": "runner_eval_chunks",
+                    "dsn": "postgresql://rag_user:rag_password@localhost:5432/rag_db",
+                    "qdrant_url": "http://localhost:6333",
+                    "qdrant_collection": "runner_eval_chunks",
                 },
             },
             "embedding": {
@@ -96,3 +98,4 @@ def test_run_template_from_json_with_eval_enabled(tmp_path: Path) -> None:
         "hybrid",
         "semantic_cosine_rerank",
     }
+

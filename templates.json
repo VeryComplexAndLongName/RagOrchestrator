@@ -1,10 +1,11 @@
 {
   "orchestrator": {
     "provider": {
-      "kind": "sqlite+vec",
+      "kind": "postgres+qdrant",
       "params": {
-        "db_path": "rag_templates.db",
-        "table_name": "rag_chunks"
+        "dsn": "postgresql://rag_user:rag_password@localhost:5432/rag_db",
+        "qdrant_url": "http://localhost:6333",
+        "qdrant_collection": "rag_chunks"
       }
     },
     "embedding": {

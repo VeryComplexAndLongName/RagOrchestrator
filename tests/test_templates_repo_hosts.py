@@ -13,7 +13,7 @@ from ragflow_orchestrator.templates.runner import run_template_from_json
 
 
 def _build_orchestrator(tmp_path: Path) -> RAGOrchestrator:
-    provider = create_provider("sqlite+vec", db_path=str(tmp_path / "repo_hosts.db"), table_name="repo_host_chunks")
+    provider = create_provider("postgres+qdrant", dsn="postgresql://rag_user:rag_password@localhost:5432/rag_db", qdrant_url="http://localhost:6333", qdrant_collection="repo_host_chunks")
     preset = document_preset()
     return RAGOrchestrator(
         provider=provider,
@@ -23,7 +23,7 @@ def _build_orchestrator(tmp_path: Path) -> RAGOrchestrator:
     )
 
 
-def test_github_template_with_stubs(tmp_path: Path) -> None:
+def test_github_template_with_stubs(tmp_path: Path, require_qdrant_service: None) -> None:
     orchestrator = _build_orchestrator(tmp_path)
     template = GitHubTemplate(orchestrator, graph_store=SqlGraphStore(str(tmp_path / "gh_graph.db")))
 
@@ -58,7 +58,7 @@ def test_github_template_with_stubs(tmp_path: Path) -> None:
     assert not report.failed
 
 
-def test_gitlab_template_with_stubs(tmp_path: Path) -> None:
+def test_gitlab_template_with_stubs(tmp_path: Path, require_qdrant_service: None) -> None:
     orchestrator = _build_orchestrator(tmp_path)
     template = GitLabTemplate(orchestrator, graph_store=SqlGraphStore(str(tmp_path / "gl_graph.db")))
 
@@ -94,7 +94,7 @@ def test_gitlab_template_with_stubs(tmp_path: Path) -> None:
     assert not report.failed
 
 
-def test_run_template_from_json_with_github(monkeypatch, tmp_path: Path) -> None:
+def test_run_template_from_json_with_github(monkeypatch, tmp_path: Path, require_qdrant_service: None) -> None:
     monkeypatch.setattr(
         "ragflow_orchestrator.templates.github_template.GitHubTemplate._list_owner_repos",
         lambda self, cfg, owner: [
@@ -121,10 +121,11 @@ def test_run_template_from_json_with_github(monkeypatch, tmp_path: Path) -> None
     cfg = {
         "orchestrator": {
             "provider": {
-                "kind": "sqlite+vec",
+                "kind": "postgres+qdrant",
                 "params": {
-                    "db_path": str(tmp_path / "runner_gh.db"),
-                    "table_name": "runner_gh_chunks",
+                    "dsn": "postgresql://rag_user:rag_password@localhost:5432/rag_db",
+                    "qdrant_url": "http://localhost:6333",
+                    "qdrant_collection": "runner_gh_chunks",
                 },
             },
             "embedding": {
@@ -154,3 +155,5 @@ def test_run_template_from_json_with_github(monkeypatch, tmp_path: Path) -> None
     report = run_template_from_json(str(cfg_path))
     assert len(report.ingested) == 1
     assert not report.failed
+
+

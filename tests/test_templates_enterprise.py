@@ -19,7 +19,7 @@ from ragflow_orchestrator.templates import (
 
 
 def _build_orchestrator(tmp_path: Path) -> RAGOrchestrator:
-    provider = create_provider("sqlite+vec", db_path=str(tmp_path / "enterprise.db"), table_name="enterprise_chunks")
+    provider = create_provider("postgres+qdrant", dsn="postgresql://rag_user:rag_password@localhost:5432/rag_db", qdrant_url="http://localhost:6333", qdrant_collection="enterprise_chunks")
     preset = document_preset()
     return RAGOrchestrator(
         provider=provider,
@@ -192,3 +192,5 @@ def test_api_reference_template_loads_xml_as_plain_text(tmp_path: Path) -> None:
         assert isinstance(loaded, str)
         assert "countries/country[1]@code: FR" in loaded
         assert "countries/country[1]/name[1]: France" in loaded
+
+

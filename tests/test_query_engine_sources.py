@@ -10,7 +10,7 @@ from ragflow_orchestrator.query_engine import RAGQueryEngine
 
 
 def _build_orchestrator(tmp_path: Path) -> RAGOrchestrator:
-    provider = create_provider("sqlite+vec", db_path=str(tmp_path / "qe.db"), table_name="qe_chunks")
+    provider = create_provider("postgres+qdrant", dsn="postgresql://rag_user:rag_password@localhost:5432/rag_db", qdrant_url="http://localhost:6333", qdrant_collection="qe_chunks")
     preset = document_preset()
     return RAGOrchestrator(
         provider=provider,
@@ -43,3 +43,5 @@ def test_answer_from_sources_filters_context(tmp_path: Path) -> None:
 
     assert answer.context
     assert all(item.chunk.metadata.get("source_type") == "confluence" for item in answer.context)
+
+

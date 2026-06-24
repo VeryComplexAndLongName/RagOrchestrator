@@ -1,3 +1,5 @@
+import os
+
 from ragflow_orchestrator import (
     DocumentFolderConfig,
     DocumentFolderTemplate,
@@ -12,7 +14,12 @@ from ragflow_orchestrator import (
 
 
 def build_orchestrator() -> RAGOrchestrator:
-    provider = create_provider("sqlite+vec", db_path="template_demo.db", table_name="template_chunks")
+    provider = create_provider(
+        "postgres+qdrant",
+        dsn=os.getenv("RAG_POSTGRES_DSN", "postgresql://rag_user:rag_password@localhost:5432/rag_db"),
+        qdrant_url=os.getenv("RAG_QDRANT_URL", "http://localhost:6333"),
+        qdrant_collection=os.getenv("RAG_QDRANT_COLLECTION", "template_chunks"),
+    )
     preset = document_preset()
     return RAGOrchestrator(
         provider=provider,

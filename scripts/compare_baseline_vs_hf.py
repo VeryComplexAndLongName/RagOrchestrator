@@ -60,8 +60,8 @@ class ProfileComparison:
     vram_mb: float
 
 
-def _build_demo_index(db_path: str, embedder: object) -> object:
-    provider = create_provider("sqlite+vec", db_path=db_path, table_name="cmp_chunks")
+def _build_demo_index(embedder: object) -> object:
+    provider = create_provider("postgres+qdrant", dsn="postgresql://rag_user:rag_password@localhost:5432/rag_db", qdrant_url="http://localhost:6333", qdrant_collection="cmp_chunks")
     preset = document_preset()
     orchestrator = RAGOrchestrator(
         provider=provider,
@@ -150,8 +150,7 @@ def run_profile(
 ) -> ProfileComparison:
     root = Path(artifacts_dir)
     root.mkdir(parents=True, exist_ok=True)
-    db_path = str(root / f"compare_{profile_name}.sqlite")
-    provider = _build_demo_index(db_path=db_path, embedder=embedder)
+    provider = _build_demo_index(embedder=embedder)
 
     quality_reports = evaluate_rerank_profiles(
         provider=provider,
@@ -289,3 +288,5 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
+

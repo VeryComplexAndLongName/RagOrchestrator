@@ -66,10 +66,14 @@ def _build_queries(count: int, rnd: random.Random) -> list[str]:
 
 
 def _provider_factory(kind: str, run_id: str, args: argparse.Namespace):
-    if kind == "sqlite+vec":
-        db_name = Path(args.artifacts_dir) / f"loadtest_{run_id}.sqlite"
-        db_name.parent.mkdir(parents=True, exist_ok=True)
-        return create_provider("sqlite+vec", db_path=str(db_name), table_name=f"chunks_{run_id}")
+    if kind == "postgres+qdrant":
+        dsn = args.pg_dsn or "postgresql://rag_user:rag_password@localhost:5432/rag_db"
+        return create_provider(
+            "postgres+qdrant",
+            dsn=dsn,
+            qdrant_url=args.qdrant_url,
+            qdrant_collection=f"chunks_{run_id}",
+        )
     if kind == "pgvector":
         if not args.pg_dsn:
             raise ValueError("PGVECTOR_DSN is missing")
@@ -196,7 +200,7 @@ def _print_table(results: list[BackendResult]) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Load test and compare vector backends")
-    parser.add_argument("--providers", nargs="+", default=["sqlite+vec", "pgvector", "qdrant"])
+    parser.add_argument("--providers", nargs="+", default=["postgres+qdrant", "pgvector", "qdrant"])
     parser.add_argument("--documents", type=int, default=500)
     parser.add_argument("--words-per-doc", type=int, default=120)
     parser.add_argument("--queries", type=int, default=800)
@@ -241,3 +245,6 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
+
+

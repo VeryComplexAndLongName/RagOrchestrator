@@ -9,7 +9,7 @@ from ragflow_orchestrator.presets import document_preset
 
 
 def test_ingest_enriches_chunk_metadata_and_fields(tmp_path: Path) -> None:
-    provider = create_provider("sqlite+vec", db_path=str(tmp_path / "enrich.db"), table_name="enriched_chunks")
+    provider = create_provider("postgres+qdrant", dsn="postgresql://rag_user:rag_password@localhost:5432/rag_db", qdrant_url="http://localhost:6333", qdrant_collection="enriched_chunks")
     preset = document_preset()
     orchestrator = RAGOrchestrator(
         provider=provider,
@@ -38,3 +38,5 @@ def test_ingest_enriches_chunk_metadata_and_fields(tmp_path: Path) -> None:
     assert top.metadata.get("source_type") == top.source_type
     assert top.metadata.get("domain") == top.domain
     assert top.metadata.get("token_count") == top.token_count
+
+

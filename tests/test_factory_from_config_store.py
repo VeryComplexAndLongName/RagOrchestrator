@@ -6,11 +6,17 @@ from ragflow_orchestrator.config import ConfigStore, EmbeddingConfig, ModuleConf
 from ragflow_orchestrator.orchestrator_factory import RAGOrchestratorFactory
 
 
-def test_factory_from_config_store(tmp_path: Path) -> None:
-    db_path = tmp_path / "factory.db"
+def test_factory_from_config_store(tmp_path: Path, require_qdrant_service: None) -> None:
     store = ConfigStore(
         ModuleConfig(
-            provider=ProviderConfig(kind="sqlite+vec", params={"db_path": str(db_path), "table_name": "factory_chunks"}),
+            provider=ProviderConfig(
+                kind="postgres+qdrant",
+                params={
+                    "dsn": "postgresql://rag_user:rag_password@localhost:5432/rag_db",
+                    "qdrant_url": "http://localhost:6333",
+                    "qdrant_collection": "factory_chunks",
+                },
+            ),
             embedding=EmbeddingConfig(provider="hash", dimensions=64),
             pipeline=PipelineConfig(preset="document"),
         )
@@ -28,3 +34,4 @@ def test_factory_from_config_store(tmp_path: Path) -> None:
 
     results = orchestrator.search("consistent dependencies", top_k=1)
     assert results
+
