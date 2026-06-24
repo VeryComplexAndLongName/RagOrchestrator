@@ -44,6 +44,7 @@ class NormativeChunk:
     id: str
     doc_id: str
     text: str
+    chunk_index: int = 0
     clause_path: str | None = None  # "5.2.3" or "пункт 3.1.1"
     section: str | None = None  # Section title
     standard_ref: str | None = None  # "СП 14.13330.2018", "ГОСТ 27751-2014"
@@ -68,12 +69,12 @@ CLAUSE_RE = re.compile(r'^\s*((?:раздел\s+|п[ункт]?\s+)?(\d+(?:\.\d+)
 
 # Standard codes: ГОСТ 27751-2014, СП 14.13330.2018, СНиП II-7-81*, ГОСТ Р
 STD_RE = re.compile(
-    r'((?:ГОСТ\s+(?:Р\s+)?[\d\-\.]+|СП\s+[\d\.]+|СНиП\s+[\dIVX\-\.\*]+|СНИП\s+[\dIVX\-\.\*]+))',
+    r'((?:ГОСТ|GOST)\s+(?:Р\s+)?[\d\-\.]+|СП\s+[\d\.]+|СНиП\s+[\dIVX\-\.\*]+|СНИП\s+[\dIVX\-\.\*]+)',
     re.IGNORECASE
 )
 
 # Section headers: "1. Общие положения", "2.1. Требования"
-SECTION_RE = re.compile(r'^(\d+(?:\.\d+)?)\.\s+([А-ЯЁ][а-яё\s\-,\.]+)$', re.UNICODE)
+SECTION_RE = re.compile(r'^(\d+(?:\.\d+){0,2})\.\s+([A-Za-zА-ЯЁа-яё][A-Za-zА-ЯЁа-яё\s\-,\.]+)$', re.UNICODE)
 
 
 # ============================================================
@@ -234,6 +235,7 @@ class NormativeChunker:
                     id=str(uuid.uuid4()),
                     doc_id=doc_id,
                     text=text,
+                    chunk_index=len(chunks),
                     clause_path=buffer_clause or None,
                     section=current_section,
                     standard_ref=current_std,

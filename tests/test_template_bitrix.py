@@ -14,7 +14,7 @@ from ragflow_orchestrator.templates.models import BitrixConfig, LanguageMode
 
 
 def _build_orchestrator(tmp_path: Path) -> RAGOrchestrator:
-    provider = create_provider("postgres+qdrant", dsn="postgresql://rag_user:rag_password@localhost:5432/rag_db", qdrant_url="http://localhost:6333", qdrant_collection="bitrix_chunks")
+    provider = create_provider("sqlite+vec", db_path=str(tmp_path / "bitrix.db"), table_name="bitrix_chunks")
     preset = document_preset()
     return RAGOrchestrator(
         provider=provider,

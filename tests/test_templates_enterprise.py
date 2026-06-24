@@ -19,7 +19,7 @@ from ragflow_orchestrator.templates import (
 
 
 def _build_orchestrator(tmp_path: Path) -> RAGOrchestrator:
-    provider = create_provider("postgres+qdrant", dsn="postgresql://rag_user:rag_password@localhost:5432/rag_db", qdrant_url="http://localhost:6333", qdrant_collection="enterprise_chunks")
+    provider = create_provider("sqlite+vec", db_path=str(tmp_path / "enterprise.db"), table_name="enterprise_chunks")
     preset = document_preset()
     return RAGOrchestrator(
         provider=provider,

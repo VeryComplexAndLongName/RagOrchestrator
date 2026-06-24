@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from ragflow_orchestrator.adapters import PGVectorProvider, QdrantProvider
+from ragflow_orchestrator.adapters import PGVectorProvider, QdrantProvider, SQLiteVecProvider
 from ragflow_orchestrator.errors import ConfigurationError
 from ragflow_orchestrator.protocols import RAGProvider
 
@@ -16,6 +16,9 @@ def create_provider(kind: str, **kwargs: object) -> RAGProvider:
     For postgres+qdrant, pass dsn (PostgreSQL connection string) and qdrant_url.
     """
     kind_lower = kind.lower()
+
+    if kind_lower in {"sqlite", "sqlite+vec", "sqlite_vec"}:
+        return SQLiteVecProvider(**kwargs)
 
     # Legacy providers (deprecated but kept for compatibility)
     if kind_lower in {"qdrant"}:

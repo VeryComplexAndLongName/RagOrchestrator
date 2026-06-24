@@ -19,6 +19,8 @@ from ragflow_orchestrator.migrations import run_postgres_migrations
 from ragflow_orchestrator.models import BaseChunk, RetrievalQuery
 from ragflow_orchestrator.versioned_pipeline import VersionedDocumentPipeline
 
+pytestmark = [pytest.mark.integration, pytest.mark.pgvector]
+
 # ============================================================
 # Fixtures
 # ============================================================

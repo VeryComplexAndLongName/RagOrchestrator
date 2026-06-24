@@ -9,6 +9,8 @@ import pytest
 from ragflow_orchestrator.adapters import PostgresMetadataBackend
 from ragflow_orchestrator.migrations import run_postgres_migrations
 
+pytestmark = [pytest.mark.integration, pytest.mark.pgvector]
+
 # ============================================================
 # Fixtures
 # ============================================================

@@ -10,7 +10,7 @@ from ragflow_orchestrator.presets import document_preset
 
 
 def test_evaluate_rerank_profiles_with_cosine(tmp_path: Path) -> None:
-    provider = create_provider("postgres+qdrant", dsn="postgresql://rag_user:rag_password@localhost:5432/rag_db", qdrant_url="http://localhost:6333", qdrant_collection="profile_chunks")
+    provider = create_provider("sqlite+vec", db_path=str(tmp_path / "profiles.db"), table_name="profile_chunks")
     embedder = HashEmbedder(dimensions=64)
     preset = document_preset()
 
