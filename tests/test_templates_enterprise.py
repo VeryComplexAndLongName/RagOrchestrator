@@ -192,3 +192,5 @@ def test_api_reference_template_loads_xml_as_plain_text(tmp_path: Path) -> None:
         assert isinstance(loaded, str)
         assert "countries/country[1]@code: FR" in loaded
         assert "countries/country[1]/name[1]: France" in loaded
+
+

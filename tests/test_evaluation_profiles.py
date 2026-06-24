@@ -39,3 +39,5 @@ def test_evaluate_rerank_profiles_with_cosine(tmp_path: Path) -> None:
 
     assert "cosine_profile" in reports
     assert reports["cosine_profile"]
+
+

@@ -7,7 +7,7 @@ Main file:
 
 The script does all of the following in one pipeline:
 
-1. Ingests GitHub repositories into SQLite+vec and graph storage.
+1. Ingests GitHub repositories into PostgreSQL + Qdrant and graph storage.
 2. Builds graph connectivity hints from retrieved repositories.
 3. Uses PromptOrchestrator for every user turn.
 4. Applies strict context and token budgets.

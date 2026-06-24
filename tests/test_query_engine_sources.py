@@ -43,3 +43,5 @@ def test_answer_from_sources_filters_context(tmp_path: Path) -> None:
 
     assert answer.context
     assert all(item.chunk.metadata.get("source_type") == "confluence" for item in answer.context)
+
+

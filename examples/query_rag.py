@@ -1,9 +1,16 @@
+import os
+
 from ragflow_orchestrator import HashEmbedder, RAGOrchestrator, create_provider, document_preset
 from ragflow_orchestrator.query_engine import RAGQueryEngine
 
 
 def main() -> None:
-    provider = create_provider("sqlite+vec", db_path="query_demo.db", table_name="query_chunks")
+    provider = create_provider(
+        "postgres+qdrant",
+        dsn=os.getenv("RAG_POSTGRES_DSN", "postgresql://rag_user:rag_password@localhost:5432/rag_db"),
+        qdrant_url=os.getenv("RAG_QDRANT_URL", "http://localhost:6333"),
+        qdrant_collection=os.getenv("RAG_QDRANT_COLLECTION", "query_chunks"),
+    )
     preset = document_preset()
 
     orchestrator = RAGOrchestrator(

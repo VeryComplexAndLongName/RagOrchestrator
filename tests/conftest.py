@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import os
+import urllib.error
+import urllib.request
 from datetime import datetime, timezone
 
 import pytest
@@ -18,6 +20,17 @@ def pytest_configure(config: pytest.Config) -> None:
 @pytest.fixture(scope="session")
 def qdrant_url() -> str:
     return os.getenv("QDRANT_URL", "http://localhost:6333")
+
+
+@pytest.fixture(scope="session")
+def require_qdrant_service(qdrant_url: str) -> None:
+    health_url = qdrant_url.rstrip("/") + "/collections"
+    try:
+        with urllib.request.urlopen(health_url, timeout=2.0) as response:
+            if response.status >= 400:
+                pytest.skip(f"Qdrant unavailable at {qdrant_url} (HTTP {response.status})")
+    except (urllib.error.URLError, TimeoutError):
+        pytest.skip(f"Qdrant unavailable at {qdrant_url}")
 
 
 @pytest.fixture(scope="session")

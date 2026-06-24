@@ -12,7 +12,7 @@ from ragflow_orchestrator.templates.runner import run_template_from_json
 
 
 def _build_orchestrator(tmp_path: Path) -> RAGOrchestrator:
-    provider = create_provider("sqlite+vec", db_path=str(tmp_path / "pypi.db"), table_name="pypi_chunks")
+    provider = create_provider("postgres+qdrant", dsn="postgresql://rag_user:rag_password@localhost:5432/rag_db", qdrant_url="http://localhost:6333", qdrant_collection="pypi_chunks")
     preset = document_preset()
     return RAGOrchestrator(
         provider=provider,
@@ -22,7 +22,7 @@ def _build_orchestrator(tmp_path: Path) -> RAGOrchestrator:
     )
 
 
-def test_pypi_template_with_stub_payload(tmp_path: Path) -> None:
+def test_pypi_template_with_stub_payload(tmp_path: Path, require_qdrant_service: None) -> None:
     orchestrator = _build_orchestrator(tmp_path)
     template = PyPITemplate(orchestrator)
 
@@ -150,7 +150,7 @@ def test_pypi_build_chunks_has_short_fact_url_chunk_and_plain_markdown() -> None
     assert "**Source Code**" not in full_text
 
 
-def test_run_template_from_json_with_pypi(monkeypatch, tmp_path: Path) -> None:
+def test_run_template_from_json_with_pypi(monkeypatch, tmp_path: Path, require_qdrant_service: None) -> None:
     monkeypatch.setattr(
         "ragflow_orchestrator.templates.pypi.PyPITemplate._fetch_package_payload",
         lambda self, package: {
@@ -172,10 +172,11 @@ def test_run_template_from_json_with_pypi(monkeypatch, tmp_path: Path) -> None:
     cfg = {
         "orchestrator": {
             "provider": {
-                "kind": "sqlite+vec",
+                "kind": "postgres+qdrant",
                 "params": {
-                    "db_path": str(tmp_path / "runner_pypi.db"),
-                    "table_name": "runner_pypi_chunks",
+                    "dsn": "postgresql://rag_user:rag_password@localhost:5432/rag_db",
+                    "qdrant_url": "http://localhost:6333",
+                    "qdrant_collection": "runner_pypi_chunks",
                 },
             },
             "embedding": {
@@ -202,3 +203,5 @@ def test_run_template_from_json_with_pypi(monkeypatch, tmp_path: Path) -> None:
     report = run_template_from_json(str(cfg_path))
     assert report.ingested
     assert not report.failed
+
+

@@ -219,3 +219,5 @@ def test_bitrix_im_source_url_is_fully_escaped() -> None:
 
     source_url = BitrixTemplate._bitrix_source_url(config, "im", "chat/ops?x=1")
     assert source_url == "https://portal.bitrix24.ru/online/?IM_DIALOG=chat%2Fops%3Fx%3D1"
+
+

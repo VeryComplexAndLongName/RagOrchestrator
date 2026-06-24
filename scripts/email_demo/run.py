@@ -1,7 +1,7 @@
 """
 Email Ticket RAG Demo
 =====================
-Ingest ticket-like files (.eml/.jsonl/.csv/.txt/.md) into a local SQLite+vec store,
+Ingest ticket-like files (.eml/.jsonl/.csv/.txt/.md) into a local PostgreSQL + Qdrant store,
 then answer questions via RAGQueryEngine backed by Ollama.
 
 Usage
@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import argparse
 import json as _json
+import os
 import sys
 import time
 from dataclasses import dataclass
@@ -101,7 +102,7 @@ class QueryPerf:
 
 def build_orchestrator(db_path: str, embed_model: str, ollama_url: str) -> RAGOrchestrator:
     embedder = OllamaEmbedder(model=embed_model, base_url=ollama_url)
-    provider = create_provider("sqlite+vec", db_path=db_path, table_name="email_chunks")
+    provider = create_provider("postgres+qdrant", dsn=db_path, qdrant_url=os.getenv("RAG_QDRANT_URL", "http://localhost:6333"), qdrant_collection=os.getenv("RAG_QDRANT_COLLECTION", "email_chunks"))
     preset = document_preset()
     return RAGOrchestrator(provider=provider, embedder=embedder, chunker=preset.chunker, cleaner=preset.cleaner)
 
@@ -194,7 +195,7 @@ def print_query_perf(perf: QueryPerf) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser(description="EmailTicket RAG demo", formatter_class=argparse.RawDescriptionHelpFormatter, epilog=__doc__)
     parser.add_argument("--sources", nargs="+", default=["d:/TEMP"], metavar="SOURCE", help="Ticket file(s) or folder(s)")
-    parser.add_argument("--db", default=str(Path(__file__).parent / "email.sqlite"), help="SQLite+vec DB path")
+    parser.add_argument("--db", default=os.environ.get("RAG_POSTGRES_DSN", "postgresql://rag_user:rag_password@localhost:5432/rag_db"), help="PostgreSQL DSN")
     parser.add_argument("--embed-model", default="nomic-embed-text:latest", help="Ollama embedding model")
     parser.add_argument("--chat-model", default="llama3.1:latest", help="Ollama chat model")
     parser.add_argument("--ollama-url", default="http://localhost:11434", help="Ollama base URL")
@@ -207,11 +208,10 @@ def main() -> int:
     parser.add_argument("--perf", action="store_true", help="Print ingest perf report")
     args = parser.parse_args()
 
-    db_path = Path(args.db)
-    db_path.parent.mkdir(parents=True, exist_ok=True)
+    pg_dsn = args.db
 
-    print(f"\nBuilding orchestrator  (embedder: {args.embed_model}, db: {db_path})")
-    orchestrator = build_orchestrator(str(db_path), args.embed_model, args.ollama_url)
+    print(f"\nBuilding orchestrator  (embedder: {args.embed_model}, pg_dsn: {pg_dsn})")
+    orchestrator = build_orchestrator(pg_dsn, args.embed_model, args.ollama_url)
 
     if not args.skip_ingest:
         print(f"Ingesting from {len(args.sources)} source(s): {', '.join(args.sources)} ...")
@@ -259,3 +259,7 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
+
+
+

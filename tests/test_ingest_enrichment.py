@@ -38,3 +38,5 @@ def test_ingest_enriches_chunk_metadata_and_fields(tmp_path: Path) -> None:
     assert top.metadata.get("source_type") == top.source_type
     assert top.metadata.get("domain") == top.domain
     assert top.metadata.get("token_count") == top.token_count
+
+

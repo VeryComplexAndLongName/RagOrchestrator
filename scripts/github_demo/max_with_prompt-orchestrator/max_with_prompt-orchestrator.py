@@ -5,7 +5,7 @@ GitHub RAG + Graph + PromptOrchestrator demo
 This script is similar in spirit to scripts/github_demo/run.py but extends the chat stage
 with prompt_orchestrator. It demonstrates:
 
-1) GitHub ingestion into SQLite+vec and graph DB.
+1) GitHub ingestion into PostgreSQL + Qdrant and graph DB.
 2) Retrieval-augmented prompting via PromptOrchestrator RAG provider.
 3) Strict prompt limits (chars/tokens/summary caps) and automatic fitting.
 4) Safety checks and full stats reporting for each turn.
@@ -226,7 +226,7 @@ def _hr(logger: Logger, char: str = "-", width: int = 90) -> None:
 
 def build_orchestrator(db_path: str, embed_model: str, ollama_url: str) -> RAGOrchestrator:
     embedder = OllamaEmbedder(model=embed_model, base_url=ollama_url)
-    provider = create_provider("sqlite+vec", db_path=db_path, table_name="github_chunks")
+    provider = create_provider("postgres+qdrant", dsn=db_path, qdrant_url=os.getenv("RAG_QDRANT_URL", "http://localhost:6333"), qdrant_collection=os.getenv("RAG_QDRANT_COLLECTION", "github_chunks"))
     preset = document_preset()
     return RAGOrchestrator(
         provider=provider,
@@ -610,8 +610,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--owners", nargs="+", default=DEFAULT_BOOTSTRAP_OWNERS, metavar="OWNER")
     parser.add_argument(
         "--db",
-        default=str(Path(__file__).parent / "github.sqlite"),
-        help="SQLite+vec DB path",
+        default=os.environ.get("RAG_POSTGRES_DSN", "postgresql://rag_user:rag_password@localhost:5432/rag_db"),
+        help="PostgreSQL DSN",
     )
     parser.add_argument(
         "--graph-db",
@@ -1008,8 +1008,7 @@ def run_auto_simulation(
 def main() -> int:
     args = build_parser().parse_args()
 
-    db_path = Path(args.db)
-    db_path.parent.mkdir(parents=True, exist_ok=True)
+    pg_dsn = args.db
     graph_db_path = Path(args.graph_db)
     graph_db_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -1029,7 +1028,7 @@ def main() -> int:
     logger.line("\nBuilding RAG orchestrator...")
     try:
         rag_orchestrator = build_orchestrator(
-            db_path=str(db_path),
+            db_path=pg_dsn,
             embed_model=args.embed_model,
             ollama_url=args.ollama_url,
         )
@@ -1188,3 +1187,7 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
+
+
+

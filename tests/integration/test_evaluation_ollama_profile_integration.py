@@ -11,7 +11,7 @@ from ragflow_orchestrator.presets import document_preset
 
 @pytest.mark.integration
 def test_evaluate_rerank_profiles_with_ollama(tmp_path) -> None:
-    provider = create_provider("sqlite+vec", db_path=str(tmp_path / "ollama_profiles.db"), table_name="ollama_profile_chunks")
+    provider = create_provider("postgres+qdrant", dsn="postgresql://rag_user:rag_password@localhost:5432/rag_db", qdrant_url="http://localhost:6333", qdrant_collection="ollama_profile_chunks")
     embedder = HashEmbedder(dimensions=64)
     preset = document_preset()
 
@@ -55,3 +55,5 @@ def test_evaluate_rerank_profiles_with_ollama(tmp_path) -> None:
     assert "cosine_profile" in reports
     assert "ollama_profile" in reports
     assert reports["ollama_profile"]
+
+
