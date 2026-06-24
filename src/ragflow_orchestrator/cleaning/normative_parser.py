@@ -64,16 +64,16 @@ class NormativeChunk:
 # Regex patterns for structure extraction
 # ============================================================
 
-# Clause numbers: 1. / 4.1 / 5.2.3 / 6.7.12 / 13.1 / п.1 / раздел 2.1
+# Clause numbers: 1. / 4.1 / 5.2.3 / 6.7.12 / 13.1 / п.1 / пункт 2 / раздел 2.1
 CLAUSE_RE = re.compile(r'^\s*((?:раздел\s+|п[ункт]?\s+)?(\d+(?:\.\d+){0,3}))[\.:]?\s+', re.IGNORECASE)
 
-# Standard codes: ГОСТ 27751-2014, СП 14.13330.2018, СНиП II-7-81*, ГОСТ Р
+# Standard codes: ГОСТ/GOST 27751-2014, ГОСТ/GOST Р 1234-2024, СП 14.13330.2018, СНиП II-7-81*
 STD_RE = re.compile(
     r'((?:ГОСТ|GOST)\s+(?:Р\s+)?[\d\-\.]+|СП\s+[\d\.]+|СНиП\s+[\dIVX\-\.\*]+|СНИП\s+[\dIVX\-\.\*]+)',
     re.IGNORECASE
 )
 
-# Section headers: "1. Общие положения", "2.1. Требования"
+# Section headers: "1. Общие положения", "2.1. Requirements", "3.2.1. Specific rules"
 SECTION_RE = re.compile(r'^(\d+(?:\.\d+){0,2})\.\s+([A-Za-zА-ЯЁа-яё][A-Za-zА-ЯЁа-яё\s\-,\.]+)$', re.UNICODE)
 
 
