@@ -16,9 +16,9 @@ from ragflow_orchestrator.boilerplate import (
     default_boilerplate_registry,
     parse_aggressiveness,
 )
-from ragflow_orchestrator.config import SubtypeClassificationConfig
 from ragflow_orchestrator.chunking.fixed import FixedWindowChunker
 from ragflow_orchestrator.chunking.markdown import MarkdownHeadingChunker
+from ragflow_orchestrator.config import SubtypeClassificationConfig
 from ragflow_orchestrator.models import BaseChunk
 from ragflow_orchestrator.subtype_classifier import DocumentSubtypeClassifier, SubtypePrediction
 

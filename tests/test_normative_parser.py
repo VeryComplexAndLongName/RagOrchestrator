@@ -2,18 +2,17 @@
 
 from __future__ import annotations
 
-import pytest
-from pathlib import Path
 from uuid import uuid4
 
-from ragflow_orchestrator.cleaning.normative_parser import (
-    NormativeChunker,
-    NormativeChunk,
-    PageContent,
-    parse_normative_text,
-    PdfClassifier,
-)
+import pytest
 
+from ragflow_orchestrator.cleaning.normative_parser import (
+    NormativeChunk,
+    NormativeChunker,
+    PageContent,
+    PdfClassifier,
+    parse_normative_text,
+)
 
 # ============================================================
 # NormativeChunk Tests

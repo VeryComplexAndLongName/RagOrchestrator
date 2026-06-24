@@ -11,7 +11,6 @@ from ragflow_orchestrator.retrieval import CosineReranker, HybridRetriever, Rera
 
 
 def test_strategy_evaluation_runs(tmp_path: Path) -> None:
-    db_path = tmp_path / "eval.db"
     provider = create_provider("postgres+qdrant", dsn="postgresql://rag_user:rag_password@localhost:5432/rag_db", qdrant_url="http://localhost:6333", qdrant_collection="eval_chunks")
     embedder = HashEmbedder(dimensions=64)
     preset = document_preset()

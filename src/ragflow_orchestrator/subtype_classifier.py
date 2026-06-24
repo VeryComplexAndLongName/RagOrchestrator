@@ -271,8 +271,8 @@ class DocumentSubtypeClassifier:
 
         for label in labels:
             r = rules.get(label, 0.0)
-            l = llm.get(label, 0.0)
-            out[label] = max(0.0, min(1.0, (r * rw) + (l * lw)))
+            llm_score = llm.get(label, 0.0)
+            out[label] = max(0.0, min(1.0, (r * rw) + (llm_score * lw)))
 
         return out
 

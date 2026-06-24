@@ -1,14 +1,14 @@
 """Examples and integration patterns for universal document detection."""
 
 from pathlib import Path
+
 from ragflow_orchestrator.document_detector import (
-    UniversalDocumentDetector,
     DocumentType,
+    UniversalDocumentDetector,
+    batch_detect_documents,
     detect_document_type,
     detect_pdf_type,
-    batch_detect_documents,
 )
-
 
 # ============================================================================
 # Example 1: Basic detection from file path
@@ -247,10 +247,10 @@ def example_detailed_info():
     print(f"Document Type: {detection.document_type.value}")
     print(f"MIME Type: {detection.mime_type or 'N/A'}")
     print(f"Detection Source: {detection.source}")
-    print(f"  - extension: fast check based on file extension")
-    print(f"  - magic_bytes: binary signature analysis")
-    print(f"  - mime: MIME type from python-magic")
-    print(f"  - content: text pattern matching")
+    print("  - extension: fast check based on file extension")
+    print("  - magic_bytes: binary signature analysis")
+    print("  - mime: MIME type from python-magic")
+    print("  - content: text pattern matching")
     print(f"Confidence: {detection.confidence:.1%}")
     print(f"PDF Subtype: {detection.pdf_subtype or 'N/A'}")
     

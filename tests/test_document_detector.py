@@ -1,21 +1,18 @@
 """Tests for universal document type detector."""
 
-import json
 import tempfile
 from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
 import pytest
 
 from ragflow_orchestrator.document_detector import (
-    UniversalDocumentDetector,
     DocumentType,
-    DocumentDetection,
+    UniversalDocumentDetector,
+    batch_detect_documents,
     detect_document_type,
     detect_pdf_type,
-    batch_detect_documents,
 )
-
 
 # ============================================================================
 # Fixtures

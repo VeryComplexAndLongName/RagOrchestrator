@@ -3,21 +3,21 @@
 from __future__ import annotations
 
 import os
-import pytest
 from pathlib import Path
-from unittest.mock import Mock, MagicMock
+from unittest.mock import Mock
 from uuid import uuid4
 
-from ragflow_orchestrator.migrations import run_postgres_migrations
+import pytest
+
 from ragflow_orchestrator.adapters import (
+    AclSync,
     PostgresMetadataBackend,
     PostgresQdrantProvider,
-    AclSync,
 )
+from ragflow_orchestrator.document_pipeline import DocumentType
+from ragflow_orchestrator.migrations import run_postgres_migrations
 from ragflow_orchestrator.models import BaseChunk, RetrievalQuery
 from ragflow_orchestrator.versioned_pipeline import VersionedDocumentPipeline
-from ragflow_orchestrator.document_pipeline import DocumentType
-
 
 # ============================================================
 # Fixtures
@@ -442,11 +442,11 @@ def test_complete_document_lifecycle(
     # 4. Verify tags
     tags = pipeline.backend.get_document_tags(doc_id)
     assert "test" in tags or len(tags) >= 0
-    
+
     # 5. Verify ACL
-    is_restricted = pipeline.backend.is_document_restricted(doc_id)
+    _ = pipeline.backend.is_document_restricted(doc_id)
     # Document might be restricted depending on ACL implementation
-    
+
     # 6. Verify logs
     if version_id:
         logs = pipeline.backend.get_ingestion_logs(version_id)
@@ -469,13 +469,12 @@ def test_multi_version_workflow(
         title="Multi-Version Doc",
         ingestion_reason="Initial version",
     )
-    
+
     assert result1["status"] in ["success", "skipped"]
-    doc_id_1 = result1["document_id"]
-    
+
     # Version 2 (different content)
     test_file.write_text("Version 2 content - updated")
-    result2 = pipeline.ingest_document(
+    pipeline.ingest_document(
         file_path=test_file,
         text="Version 2 content - updated",
         document_type=DocumentType.TXT,

@@ -13,8 +13,8 @@ from __future__ import annotations
 
 import re
 import uuid
-from dataclasses import dataclass, asdict, field
-from typing import Callable, Any
+from dataclasses import dataclass
+from typing import Any, Callable
 
 # Optional dependencies for PDF and OCR
 try:
@@ -23,8 +23,8 @@ except ImportError:
     fitz = None
 
 try:
-    from paddleocr import PaddleOCR
     import numpy as np
+    from paddleocr import PaddleOCR
 except ImportError:
     PaddleOCR = None
     np = None
@@ -129,7 +129,7 @@ class PdfClassifier:
                 try:
                     ocr_text = ocr_fn(page)
                     pages.append(PageContent(i + 1, ocr_text, "ocr"))
-                except Exception as e:
+                except Exception:
                     # OCR failed, fall back to raw text
                     pages.append(PageContent(i + 1, text, "text_layer"))
             else:

@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterator
+
 import pytest
-from uuid import uuid4
 
 from ragflow_orchestrator.adapters import PostgresMetadataBackend
 from ragflow_orchestrator.migrations import run_postgres_migrations
-
 
 # ============================================================
 # Fixtures
@@ -38,7 +38,7 @@ def backend(test_dsn: str) -> PostgresMetadataBackend:
 
 
 @pytest.fixture(autouse=True)
-def cleanup_db(backend: PostgresMetadataBackend) -> None:
+def cleanup_db(backend: PostgresMetadataBackend) -> Iterator[None]:
     """Clean up database after each test."""
     yield
     # Cleanup would go here (truncate tables, etc.)
@@ -244,8 +244,8 @@ def test_mark_chunks_deleted(backend: PostgresMetadataBackend) -> None:
     
     # Mark as deleted
     backend.mark_chunks_deleted(version_id)
-    
-    chunks = backend.get_chunks_by_version(version_id)
+
+    _ = backend.get_chunks_by_version(version_id)
     # After deletion, should still have the record but marked deleted
 
 

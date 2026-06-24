@@ -11,27 +11,24 @@ This module extends the basic document pipeline to:
 from __future__ import annotations
 
 import hashlib
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
-from uuid import uuid4
 
 from ragflow_orchestrator.adapters import (
+    AclSync,
     PostgresMetadataBackend,
     PostgresQdrantProvider,
-    AclSync,
 )
 from ragflow_orchestrator.cleaning.normative_parser import (
     parse_normative_pdf,
-    parse_normative_text,
 )
-from ragflow_orchestrator.models import BaseChunk, IngestionStatus
 from ragflow_orchestrator.config import SubtypeClassificationConfig
 from ragflow_orchestrator.document_pipeline import (
-    DocumentType,
-    DocumentDetection,
     DocumentAwareCleaner,
+    DocumentDetection,
+    DocumentType,
 )
+from ragflow_orchestrator.models import BaseChunk
 from ragflow_orchestrator.subtype_classifier import DocumentSubtypeClassifier
 
 

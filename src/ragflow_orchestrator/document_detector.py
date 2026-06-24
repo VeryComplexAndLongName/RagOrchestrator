@@ -20,13 +20,11 @@ from __future__ import annotations
 import csv
 import json
 import os
-import re
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
 from typing import Any, Callable
-from xml.etree import ElementTree as ET
 
 
 class DocumentType(str, Enum):

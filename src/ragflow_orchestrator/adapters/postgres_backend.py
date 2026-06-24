@@ -9,7 +9,6 @@ Source of truth for schema: MyTasks/sql.md
 from __future__ import annotations
 
 import hashlib
-from datetime import datetime, timezone
 from typing import Any
 from uuid import uuid4
 
