@@ -1,6 +1,17 @@
 from ragflow_orchestrator.config import ConfigStore, EmbeddingConfig, ModuleConfig, PipelineConfig, ProviderConfig
 from ragflow_orchestrator.context import DocChunk
 from ragflow_orchestrator.embedding import HashEmbedder, HFEmbedder, OllamaEmbedder, create_embedder
+from ragflow_orchestrator.enterprise import (
+    ACLAwareRetrieverAdapter,
+    EnterpriseAnswerLLMConfig,
+    EnterpriseIntentLLMConfig,
+    EnterprisePipeline,
+    EnterprisePipelineConfig,
+    ReviewBundleRequest,
+    ReviewBundleResult,
+    ReviewTask,
+    StaticRetrieverAdapter,
+)
 from ragflow_orchestrator.evaluation import (
     DatasetItem,
     RerankProfileConfig,
@@ -96,6 +107,15 @@ __all__ = [
     "StrategyEvaluationReport",
     "evaluate_strategies",
     "evaluate_rerank_profiles",
+    "EnterprisePipeline",
+    "ACLAwareRetrieverAdapter",
+    "StaticRetrieverAdapter",
+    "EnterpriseIntentLLMConfig",
+    "EnterpriseAnswerLLMConfig",
+    "EnterprisePipelineConfig",
+    "ReviewBundleRequest",
+    "ReviewBundleResult",
+    "ReviewTask",
     "LanguageMode",
     "TemplatesConfig",
     "TemplateRunMetrics",
