@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ragflow_orchestrator"
-version = "0.1.16"
+version = "0.1.17"
 description = "Universal RAG orchestration layer with pluggable vector DB adapters"
 readme = { file = "README.md", content-type = "text/markdown" }
 requires-python = ">=3.11"
@@ -27,6 +27,7 @@ classifiers = [
 ]
 dependencies = [
   "mypy>=2.1.0",
+  "openai>=1.0.0",
   "psycopg[binary]>=3.1",
   "pydantic>=2.8,<3",
   "ruff>=0.15.19",
